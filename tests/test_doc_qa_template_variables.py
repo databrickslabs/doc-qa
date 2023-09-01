@@ -1,6 +1,6 @@
 import pytest
-from databricks.doc_qa.variables.doc_qa_template_variables import get_openai_grading_template_and_function, openai_evaluator_function_scale_1, openai_evaluator_function_scale_3, openai_evaluator_function_scale_4, openai_evaluator_function_scale_10
-from databricks.doc_qa.llm_utils import PromptTemplate
+from databricks.labs.doc_qa.variables.doc_qa_template_variables import get_openai_grading_template_and_function, openai_evaluator_function_scale_1, openai_evaluator_function_scale_3, openai_evaluator_function_scale_4, openai_evaluator_function_scale_10
+from databricks.labs.doc_qa.llm_utils import PromptTemplate
 
 def test_get_openai_grading_template_and_function():
     # Test for valid scale and level_of_details

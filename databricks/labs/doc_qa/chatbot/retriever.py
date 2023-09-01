@@ -1,6 +1,6 @@
 from datetime import datetime
 import pandas as pd
-from databricks.doc_qa.llm_utils import PromptTemplate
+from databricks.labs.doc_qa.llm_utils import PromptTemplate
 import openai
 import logging
 import faiss

@@ -1,9 +1,9 @@
 import pytest
 from unittest.mock import Mock, patch
-from databricks.doc_qa.chatbot.chatbot import OpenAILlmProvider, BaseChatBot, ChatResponse, LlmProvider
-from databricks.doc_qa.llm_providers import openai_provider
-from databricks.doc_qa.llm_utils import PromptTemplate
-from databricks.doc_qa.chatbot.retriever import BaseRetriever, Document
+from databricks.labs.doc_qa.chatbot.chatbot import OpenAILlmProvider, BaseChatBot, ChatResponse, LlmProvider
+from databricks.labs.doc_qa.llm_providers import openai_provider
+from databricks.labs.doc_qa.llm_utils import PromptTemplate
+from databricks.labs.doc_qa.chatbot.retriever import BaseRetriever, Document
 
 
 def test_openai_llm_provider():

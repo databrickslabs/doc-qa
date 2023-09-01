@@ -1,7 +1,7 @@
-from databricks.doc_qa.llm_providers import openai_provider
-from databricks.doc_qa.llm_utils import PromptTemplate
+from databricks.labs.doc_qa.llm_providers import openai_provider
+from databricks.labs.doc_qa.llm_utils import PromptTemplate
 import openai
-from databricks.doc_qa.chatbot.retriever import Document, BaseRetriever
+from databricks.labs.doc_qa.chatbot.retriever import Document, BaseRetriever
 import logging
 import tiktoken
 

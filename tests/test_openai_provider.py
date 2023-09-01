@@ -1,7 +1,7 @@
 import os
 import pytest
 import requests_mock
-from databricks.doc_qa.llm_providers.openai_provider import request_openai, StatusCode429Error
+from databricks.labs.doc_qa.llm_providers.openai_provider import request_openai, StatusCode429Error
 
 def setup_module(module):
     os.environ['OPENAI_API_KEY'] = 'test_openai_key'

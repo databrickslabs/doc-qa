@@ -1,9 +1,9 @@
 import pytest
 import pandas as pd
 from unittest import mock
-from databricks.doc_qa.evaluators.templated_evaluator import BaseLlmEvaluator, PromptTemplate, DefaultRetryPolicy, ParameterType, ParameterDef, RowInput, RowEvalResult, EvalResult, RetryPolicy
+from databricks.labs.doc_qa.evaluators.templated_evaluator import BaseLlmEvaluator, PromptTemplate, DefaultRetryPolicy, ParameterType, ParameterDef, RowInput, RowEvalResult, EvalResult, RetryPolicy
 from unittest.mock import patch
-from databricks.doc_qa.evaluators.templated_evaluator import OpenAIEvaluator, AnthropicEvaluator, RowInput, RowEvalResult, ParameterDef, ParameterType, PromptTemplate, DefaultRetryPolicy, NoRetryPolicy, RetryPolicy
+from databricks.labs.doc_qa.evaluators.templated_evaluator import OpenAIEvaluator, AnthropicEvaluator, RowInput, RowEvalResult, ParameterDef, ParameterType, PromptTemplate, DefaultRetryPolicy, NoRetryPolicy, RetryPolicy
 import json
 
 # Sample function to create a BaseLlmEvaluator instance
@@ -28,7 +28,7 @@ def test_init_base_llm_evaluator():
     assert evaluator.model == "model_name"
     assert evaluator.temperature == 0.8
 
-@patch('databricks.doc_qa.evaluators.templated_evaluator.openai_provider.request_openai')
+@patch('databricks.labs.doc_qa.evaluators.templated_evaluator.openai_provider.request_openai')
 def test_openaievaluator(mock_request_openai):
     # Prepare the mock response
     mock_request_openai.return_value = {"function_call": {"arguments": json.dumps({"result": 5.0})}}
@@ -50,7 +50,7 @@ def test_openaievaluator(mock_request_openai):
     assert result.is_successful
     assert result.result == 5.0
     
-@patch('databricks.doc_qa.evaluators.templated_evaluator.anthropic_provider.request_anthropic')
+@patch('databricks.labs.doc_qa.evaluators.templated_evaluator.anthropic_provider.request_anthropic')
 def test_anthropicevaluator(mock_request_anthropic):
     # Prepare the mock response
     mock_request_anthropic.return_value = "addition result: 8.0\n"
@@ -87,7 +87,7 @@ def test_no_retry_policy():
     assert no_retry_policy.max_retry_on_invalid_result == 0
     assert no_retry_policy.max_retry_on_exception == 0
 
-@mock.patch("databricks.doc_qa.evaluators.templated_evaluator.openai_provider.request_openai")
+@mock.patch("databricks.labs.doc_qa.evaluators.templated_evaluator.openai_provider.request_openai")
 def test_openai_evaluator(mock_request_openai):
     # Define a mock response from the openai_provider
     mock_response = {
@@ -116,7 +116,7 @@ def test_openai_evaluator(mock_request_openai):
     assert result.score == 3.5
 
 
-@mock.patch("databricks.doc_qa.evaluators.templated_evaluator.anthropic_provider.request_anthropic")
+@mock.patch("databricks.labs.doc_qa.evaluators.templated_evaluator.anthropic_provider.request_anthropic")
 def test_anthropic_evaluator(mock_request_anthropic):
     # Define a mock response from the anthropic_provider
     mock_response = "Score: 3.5\n"

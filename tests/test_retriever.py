@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 import numpy as np
 import pandas as pd
 from datetime import datetime
-from databricks.doc_qa.chatbot.retriever import CsvRetriever, OpenAIEmbeddingProvider, Document
+from databricks.labs.doc_qa.chatbot.retriever import CsvRetriever, OpenAIEmbeddingProvider, Document
 import json
 
 def test_openai_embedding_provider_single_query(mocker):

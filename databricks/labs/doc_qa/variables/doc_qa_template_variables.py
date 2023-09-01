@@ -1,4 +1,4 @@
-from databricks.doc_qa.llm_utils import PromptTemplate
+from databricks.labs.doc_qa.llm_utils import PromptTemplate
 
 
 grading_system_prompt_intro = """ Please act as an impartial judge and evaluate the quality of the provided answer which attempts to answer the provided question based on a provided context."""

@@ -3,9 +3,9 @@ from typing import Any
 from pandas import DataFrame
 import concurrent.futures
 import pandas as pd
-from databricks.doc_qa.llm_utils import PromptTemplate
-from databricks.doc_qa.llm_providers import openai_provider
-from databricks.doc_qa.llm_providers import anthropic_provider
+from databricks.labs.doc_qa.llm_utils import PromptTemplate
+from databricks.labs.doc_qa.llm_providers import openai_provider
+from databricks.labs.doc_qa.llm_providers import anthropic_provider
 import json
 import logging
 from tenacity import retry, stop_after_attempt, retry_if_result, retry_if_exception
