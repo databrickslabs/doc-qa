@@ -24,7 +24,7 @@ setup(
         'tenacity>=8.0.1',
         'tiktoken>=0.3.3',
         'python-dotenv==1.0.0',
-        'anthropic==0.3.10',
+        'anthropic==0.3.11',
         'faiss-cpu==1.7.3',
         'databricks-vectorsearch-preview>=0.17',
     ],
