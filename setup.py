@@ -25,7 +25,7 @@ setup(
         'tiktoken>=0.3.3',
         'python-dotenv==1.0.0',
         'anthropic==0.3.10',
-        'faiss-cpu==1.7.3',
+        'faiss-cpu==1.7.4',
         'databricks-vectorsearch-preview>=0.17',
     ],
 )
