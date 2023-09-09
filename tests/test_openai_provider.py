@@ -1,17 +1,21 @@
 import os
 import pytest
 import requests_mock
-from databricks.labs.doc_qa.llm_providers.openai_provider import request_openai, StatusCode429Error
+from databricks.labs.doc_qa.llm_providers.openai_provider import (
+    request_openai,
+    StatusCode429Error,
+)
+
 
 def setup_module(module):
-    os.environ['OPENAI_API_KEY'] = 'test_openai_key'
-    os.environ['OPENAI_ORGANIZATION'] = 'test_openai_org'
-    os.environ['PAT_TOKEN'] = 'test_pat_token'
+    os.environ["OPENAI_API_KEY"] = "test_openai_key"
+    os.environ["OPENAI_ORGANIZATION"] = "test_openai_org"
+
 
 def teardown_module(module):
-    os.environ.pop('OPENAI_API_KEY')
-    os.environ.pop('OPENAI_ORGANIZATION')
-    os.environ.pop('PAT_TOKEN')
+    os.environ.pop("OPENAI_API_KEY")
+    os.environ.pop("OPENAI_ORGANIZATION")
+
 
 def test_request_openai_successful():
     with requests_mock.Mocker() as m:
@@ -19,6 +23,7 @@ def test_request_openai_successful():
         m.post(url, text='{"choices": [{"message": "test_message"}]}')
         response_message = request_openai(["test_message"])
         assert response_message == "test_message"
+
 
 def test_request_openai_status_code_not_200():
     with requests_mock.Mocker() as m:

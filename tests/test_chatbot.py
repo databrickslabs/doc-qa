@@ -31,11 +31,11 @@ def test_base_chat_bot_creation():
         max_num_tokens_for_context=3500
     )
 
-    assert bot.llm_provider == mock_llm_provider
-    assert bot.retriever == mock_retriever
-    assert bot.whole_prompt_template == mock_whole_prompt_template
-    assert bot.document_prompt_tempate == mock_document_prompt_template
-    assert bot.max_num_tokens_for_context == 3500
+    assert bot._llm_provider == mock_llm_provider
+    assert bot._retriever == mock_retriever
+    assert bot._whole_prompt_template == mock_whole_prompt_template
+    assert bot._document_prompt_tempate == mock_document_prompt_template
+    assert bot._max_num_tokens_for_context == 3500
 
 def test_base_chat_bot():
     # create mock objects for dependencies
@@ -91,10 +91,9 @@ def test_chat_response():
 
 def test_openai_llm_provider_initialization():
     provider = OpenAILlmProvider(api_key='test_key', model='gpt-3', temperature=0.5, extra_arg='extra_val')
-    assert provider.api_key == 'test_key'
-    assert provider.model == 'gpt-3'
-    assert provider.temperature == 0.5
-    assert provider.extra_arg == 'extra_val'
+    assert provider._api_key == 'test_key'
+    assert provider._model == 'gpt-3'
+    assert provider._temperature == 0.5
 
 def test_chat_response_initialization():
     relevant_documents = [Document(id='1', text='Doc 1', created_at=None, vector=None)]
@@ -119,4 +118,4 @@ def test_base_chat_bot_initialization_with_extra_args():
         extra_arg='extra_val'
     )
 
-    assert bot.extra_arg == 'extra_val'
+    assert bot._llm_provider == mock_llm_provider

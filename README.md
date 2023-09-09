@@ -6,7 +6,7 @@
 **Step 1: Install the repo as pip dependency:**
 
 ```
-!pip install git+https://x-access-token:[your github token]@github.com/databricks/doc_qa.git
+!pip install git+https://github.com/databrickslabs/doc-qa.git
 ```
 
 **Step 2: use it in your code:**

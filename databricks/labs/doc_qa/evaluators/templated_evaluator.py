@@ -243,11 +243,13 @@ class BaseLlmEvaluator:
         return eval_result
 
 class OpenAIEvaluator(BaseLlmEvaluator):
+    ALLOWED_MODEL_NAMES = ["gpt-4", "gpt-3.5-turbo-16k"]
+
     # Override the constructor to only allow models from gpt-4 and gpt-3.5-turbo-16k
     def __init__(self, model: str, temperature: float, grading_prompt_tempate: PromptTemplate, input_columns: list, 
                  openai_function: dict = None, system_prompt_template: PromptTemplate = None, 
                  retry_policy: RetryPolicy = DefaultRetryPolicy()):
-        if model not in ["gpt-4", "gpt-3.5-turbo-16k"]:
+        if model not in self.ALLOWED_MODEL_NAMES:
             raise ValueError(f"Unsupported model {model} provided. Only gpt-4 and gpt-3.5-turbo-16k are supported.")
         super().__init__(model=model, temperature=temperature, grading_prompt_tempate=grading_prompt_tempate, 
                          input_columns=input_columns, openai_function=openai_function, 
@@ -285,11 +287,12 @@ class OpenAIEvaluator(BaseLlmEvaluator):
             return None
 
 class AnthropicEvaluator(BaseLlmEvaluator):
+    ALLOWED_MODEL_NAMES = ["claude-1", "claude-2"]
     # Override the constructor to only allow models from claude-1 and claude-2
     def __init__(self, model: str, temperature: float, grading_prompt_tempate: PromptTemplate, 
                  input_columns: list, output_parameters: list = None, 
                  retry_policy: RetryPolicy = DefaultRetryPolicy()):
-        if model not in ["claude-1", "claude-2"]:
+        if model not in self.ALLOWED_MODEL_NAMES:
             raise ValueError(f"Unsupported model {model} provided. Only claude-1 and claude-2 are supported.")
         super().__init__(model=model, temperature=temperature, grading_prompt_tempate=grading_prompt_tempate, input_columns=input_columns, output_parameters=output_parameters, retry_policy=retry_policy)
 

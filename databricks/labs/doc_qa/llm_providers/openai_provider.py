@@ -11,8 +11,6 @@ logger = logging.getLogger(__name__)
 
 openai_token = os.getenv('OPENAI_API_KEY')
 openai_org = os.getenv('OPENAI_ORGANIZATION')
-pat_token = os.getenv('PAT_TOKEN')
-
 
 class StatusCode429Error(Exception):
     pass
