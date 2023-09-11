@@ -8,7 +8,7 @@ setup(
     version='0.0.3',
     author='Quinn Leng',
     author_email='quinn.leng@databricks.com',
-    description='Doc QA Evaluation Tool based on Databricks documentation',
+    description='Question-Answering Evaluation Tool based on Databricks documentation',
     long_description=long_description,
     long_description_content_type="text/markdown",
     url='https://github.com/databricks/doc_qa',

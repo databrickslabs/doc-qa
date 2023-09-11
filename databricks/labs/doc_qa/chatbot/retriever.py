@@ -31,10 +31,8 @@ class OpenAIEmbeddingProvider(EmbeddingProvider):
     An OpenAIEmbeddingProvider object contains the input data for the evaluation dataframe.
     """
     def __init__(self, api_key: str, **kwargs):
-        self.api_key = api_key
+        self._api_key = api_key
         openai.api_key = api_key
-        for key, value in kwargs.items():
-            setattr(self, key, value)
     
     def embed_query(self, query):
         """
@@ -44,8 +42,7 @@ class OpenAIEmbeddingProvider(EmbeddingProvider):
             input=query,
             model="text-embedding-ada-002"
         )
-        embedding = response['data'][0]['embedding']
-        return embedding
+        return response['data'][0]['embedding']
 
 
     def embed_queries(self, queries):
@@ -92,34 +89,32 @@ class CsvRetriever(BaseRetriever):
     A VectorStore object contains the input data for the evaluation dataframe.
     """
     def __init__(self, embedding_provider: EmbeddingProvider, documents: list = None, column_names: list = None, **kwargs):
-        self.documents = documents
-        self.additional_column_names = column_names
-        self.embedding_provider = embedding_provider
-        self.faiss_index = None
-        self.id_to_document = {}
-        for key, value in kwargs.items():
-            setattr(self, key, value)
+        self._documents = documents
+        self._additional_column_names = column_names
+        self._embedding_provider = embedding_provider
+        self._faiss_index = None
+        self._id_to_document = {}
 
     def _build_faiss_index(self):
         """
         Build the Faiss index for the documents.
         """
         logger.info("Start building Faiss index")
-        vectors = [doc.vector for doc in self.documents]
+        vectors = [doc.vector for doc in self._documents]
         vectors = np.array(vectors).astype('float32')  # Faiss works with float32 type
-        self.faiss_index = faiss.IndexFlatL2(vectors.shape[1])
-        self.faiss_index.add(vectors)
-        self.id_to_document = {i: doc for i, doc in enumerate(self.documents)}
+        self._faiss_index = faiss.IndexFlatL2(vectors.shape[1])
+        self._faiss_index.add(vectors)
+        self._id_to_document = {i: doc for i, doc in enumerate(self._documents)}
         logger.info("Finished building Faiss index")
 
     def find_similar_docs(self, query, top_k=3):
         """
         Find the top_k most similar documents to the query.
         """
-        query_vector = self.embedding_provider.embed_query(query)
+        query_vector = self._embedding_provider.embed_query(query)
         ## Query FAISS to get the top_k most similar documents
-        distances, indices = self.faiss_index.search(np.array([query_vector]).astype('float32'), top_k)
-        docs = [self.id_to_document[i] for i in indices[0]]  # Return the top_k documents
+        distances, indices = self._faiss_index.search(np.array([query_vector]).astype('float32'), top_k)
+        docs = [self._id_to_document[i] for i in indices[0]]  # Return the top_k documents
         # add the distance as the 'distance'  attribute to each document
         for doc, distance in zip(docs, distances[0]):
             doc.distance = distance
@@ -131,9 +126,9 @@ class CsvRetriever(BaseRetriever):
         Save the vector store as a csv file.
         """
         # Convert each document into a row in the csv file
-        column_names = self.additional_column_names + ['vector', 'created_at']
+        column_names = self._additional_column_names + ['vector', 'created_at']
         rows = []
-        for document in self.documents:
+        for document in self._documents:
             row = [getattr(document, column_name) for column_name in column_names]
             rows.append(row)
         # Save the csv file
@@ -188,26 +183,26 @@ class CsvRetriever(BaseRetriever):
 
 class BricksIndexRetriever(BaseRetriever):
     def __init__(self, workspace_url: str, token: str, columns: list, index_name: str, **kwargs):
-        self.workspace_url = workspace_url
-        self.token = token
+        self._workspace_url = workspace_url
+        self._token = token
         from databricks.vector_search.client import VectorSearchClient
-        self.vs = VectorSearchClient(workspace_url=workspace_url, token=token)
-        self.columns = columns
-        self.index_name = index_name
+        self._vs = VectorSearchClient(workspace_url=workspace_url, token=token)
+        self._columns = columns
+        self._index_name = index_name
         super().__init__(**kwargs)
 
     def find_similar_docs(self, query, top_k=3):
-        result = self.vs.similarity_search(
-            index_name=self.index_name,
+        result = self._vs.similarity_search(
+            index_name=self._index_name,
             query_text=query,
-            columns=self.columns,
+            columns=self._columns,
             num_results=top_k
         )
         documents = []
         for item in result['result']['data_array']:
             # Under the item, the value for the corresponding column is stored under the corresponding index
             document = Document(created_at=datetime.now())
-            for index, column in enumerate(self.columns):
+            for index, column in enumerate(self._columns):
                 setattr(document, column, item[index])
             documents.append(document)
         return documents
@@ -215,7 +210,7 @@ class BricksIndexRetriever(BaseRetriever):
 
 class SerperRetriever(BaseRetriever):
     def __init__(self, api_key: str, **kwargs):
-        self.api_key = api_key
+        self._api_key = api_key
         super().__init__(**kwargs)
 
     def find_similar_docs(self, query, top_k=3):
@@ -229,7 +224,7 @@ class SerperRetriever(BaseRetriever):
             "num": top_k,
         })
         headers = {
-            'X-API-KEY': self.api_key,
+            'X-API-KEY': self._api_key,
             'Content-Type': 'application/json'
         }
 
@@ -237,9 +232,6 @@ class SerperRetriever(BaseRetriever):
         response_json = response.json()
         documents = []
         for result in response_json['organic']:
-            document = Document(created_at=datetime.now())
-            document.title = result['title']
-            document.link = result['link']
-            document.snippet = result['snippet']
+            document = Document(created_at=datetime.now(), title=result['title'], link=result['link'], snippet=result['snippet'])
             documents.append(document)
         return documents

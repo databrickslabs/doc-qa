@@ -1,0 +1,28 @@
+Copyright (2023) Databricks, Inc.
+
+This Software includes software developed at Databricks (https://www.databricks.com/) and its use is subject to the included LICENSE file.
+
+This software contains code from the following open source projects, licensed under the Apache 2.0 license:
+
+tenacity - https://github.com/jd/tenacity
+Copyright 2023 Julien Danjou
+License - https://github.com/jd/tenacity/blob/main/LICENSE
+
+This software contains code from the following open source projects, licensed under the MIT license:
+
+tiktoken - https://github.com/openai/tiktoken
+Copyright (c) 2022 OpenAI, Shantanu Jain
+License - https://github.com/openai/tiktoken/blob/main/LICENSE
+
+This software contains code from the following open source projects, licensed under the MIT license:
+
+faiss - https://github.com/facebookresearch/faiss
+Copyright (c) Facebook, Inc. and its affiliates.
+License - https://github.com/facebookresearch/faiss/blob/main/LICENSE
+
+
+This software contains code from the following open source projects, licensed under the BSD (3-clause) license.
+
+python-dotenv https://github.com/theskumar/python-dotenv
+Copyright (c) 2014, Saurabh Kumar (python-dotenv), 2013, Ted Tieken (django-dotenv-rw), 2013, Jacob Kaplan-Moss (django-dotenv)
+License - https://github.com/theskumar/python-dotenv/blob/main/LICENSE
