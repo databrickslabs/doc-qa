@@ -7,6 +7,7 @@ import concurrent.futures
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 class RowGenerateResult:
     """
     A RowEvalResult object contains the evaluation result for a single row in the evaluation dataframe.
@@ -33,6 +34,7 @@ class BatchGenerateResult:
         for key, value in kwargs.items():
             setattr(self, key, value)
 
+
 class GenerateResult:
     num_rows: int
     num_successful_rows: int
@@ -50,7 +52,7 @@ class GenerateResult:
         row_dicts = [row.__dict__ for row in self.rows]
         eval_result_df = pd.DataFrame(row_dicts)
         return eval_result_df
-    
+
     def summary(self):
         summary_str = ""
         # Traverse the kwargs of the EvalResult object
@@ -63,10 +65,10 @@ class GenerateResult:
         return summary_str
 
 
-
 class BaseModelGenerator:
-
-    def __init__(self, prompt_formatter: PromptTemplate, batch_size: int=1, concurrency=1) -> None:
+    def __init__(
+        self, prompt_formatter: PromptTemplate, batch_size: int = 1, concurrency=1
+    ) -> None:
         """
         Args:
             prompt_formatter (PromptTemplate): the prompt format to format the input dataframe into prompts row by row according to the column names
@@ -77,11 +79,14 @@ class BaseModelGenerator:
         self._batch_size = batch_size
         self._concurrency = concurrency
 
-    def _generate(self, prompts: list, temperature: float, max_tokens=256, system_prompt=None) -> BatchGenerateResult:
+    def _generate(
+        self, prompts: list, temperature: float, max_tokens=256, system_prompt=None
+    ) -> BatchGenerateResult:
         raise NotImplementedError
-    
 
-    def run_tasks(self, input_df, temperature: float, max_tokens=256, system_prompt=None) -> GenerateResult:
+    def run_tasks(
+        self, input_df, temperature: float, max_tokens=256, system_prompt=None
+    ) -> GenerateResult:
         """
         Run the model on the input dataframe.
         Args:
@@ -94,8 +99,8 @@ class BaseModelGenerator:
         # First, traverse the input dataframe using batch size
         for i in range(0, len(input_df), self._batch_size):
             # Get the current batch
-            batch_df = input_df.iloc[i:i+self._batch_size]
-    
+            batch_df = input_df.iloc[i : i + self._batch_size]
+
             # Format the input dataframe into prompts row by row
             prompts = []
             for index, row in batch_df.iterrows():
@@ -103,11 +108,20 @@ class BaseModelGenerator:
                 prompt = self._prompt_formatter.format(**row)
                 prompts.append(prompt)
             prompt_batches.append(prompts)
-        logger.info(f"Generated total number of batches for prompts: {len(prompt_batches)}")
+        logger.info(
+            f"Generated total number of batches for prompts: {len(prompt_batches)}"
+        )
 
         # Call the _generate in parallel using multiple threads, each call with a batch of prompts
-        with concurrent.futures.ThreadPoolExecutor(max_workers=self._concurrency) as executor:
-            future_to_batch = {executor.submit(self._generate, prompts, temperature, max_tokens, system_prompt): prompts for prompts in prompt_batches}
+        with concurrent.futures.ThreadPoolExecutor(
+            max_workers=self._concurrency
+        ) as executor:
+            future_to_batch = {
+                executor.submit(
+                    self._generate, prompts, temperature, max_tokens, system_prompt
+                ): prompts
+                for prompts in prompt_batches
+            }
             batch_generate_results = []
             for future in concurrent.futures.as_completed(future_to_batch):
                 prompts = future_to_batch[future]
@@ -117,9 +131,20 @@ class BaseModelGenerator:
                 except Exception as exc:
                     logger.error(f"Exception occurred when running the task: {exc}")
                     # generate the same amount of RowEvalResult as the number of rows in the batch, with is_successful=False and error_msg=exc
-                    rows = [RowGenerateResult(is_successful=False, error_msg=str(exc)) for _ in range(len(prompts))]
+                    rows = [
+                        RowGenerateResult(is_successful=False, error_msg=str(exc))
+                        for _ in range(len(prompts))
+                    ]
                     # append a failed result with the error message
-                    batch_generate_results.append(BatchGenerateResult(num_rows=len(prompts), num_successful_rows=0, rows=rows, is_successful=False, error_msg=str(exc)))
+                    batch_generate_results.append(
+                        BatchGenerateResult(
+                            num_rows=len(prompts),
+                            num_successful_rows=0,
+                            rows=rows,
+                            is_successful=False,
+                            error_msg=str(exc),
+                        )
+                    )
                     raise exc
         logger.info(f"Generated total number of results: {len(batch_generate_results)}")
         # Translate batch generate results to a single generate result
@@ -137,24 +162,35 @@ class BaseModelGenerator:
 class OpenAiModelGenerator(BaseModelGenerator):
     ALLOWED_MODEL_NAMES = ["gpt-4", "gpt-3.5-turbo", "gpt-3.5-turbo-16k"]
 
-    def __init__(self, prompt_formatter: PromptTemplate, model_name: str, batch_size: int=1, concurrency: int=1) -> None:
+    def __init__(
+        self,
+        prompt_formatter: PromptTemplate,
+        model_name: str,
+        batch_size: int = 1,
+        concurrency: int = 1,
+    ) -> None:
         """
         Args:
             prompt_formatter (PromptTemplate): the prompt format to format the input dataframe into prompts row by row according to the column names
             model_name (str): the model name
             batch_size (int, optional): Batch size that will be used to run tasks. Defaults to 1, which means it's sequential.
-        
+
         """
         super().__init__(prompt_formatter, batch_size, concurrency)
         # require the batch size to be 1
         if batch_size != 1:
-            raise ValueError("OpenAiModelGenerator currently only supports batch size 1")
+            raise ValueError(
+                "OpenAiModelGenerator currently only supports batch size 1"
+            )
         if model_name not in self.ALLOWED_MODEL_NAMES:
-            raise ValueError(f"model_name {model_name} is not supported. Supported model names: {self.ALLOWED_MODEL_NAMES}")
+            raise ValueError(
+                f"model_name {model_name} is not supported. Supported model names: {self.ALLOWED_MODEL_NAMES}"
+            )
         self._model_name = model_name
 
-
-    def _generate(self, prompts: list, temperature: float, max_tokens=256, system_prompt=None) -> BatchGenerateResult:
+    def _generate(
+        self, prompts: list, temperature: float, max_tokens=256, system_prompt=None
+    ) -> BatchGenerateResult:
         if system_prompt is not None:
             messages = [
                 {"role": "system", "content": system_prompt},
@@ -166,8 +202,120 @@ class OpenAiModelGenerator(BaseModelGenerator):
         user_prompt = prompts[0]
         messages.append({"role": "user", "content": user_prompt})
 
-        response_message = openai_provider.request_openai(messages=messages, functions=[], model=self._model_name, temperature=temperature)
-        content = response_message['content']
+        response_message = openai_provider.request_openai(
+            messages=messages,
+            functions=[],
+            model=self._model_name,
+            temperature=temperature,
+        )
+        content = response_message["content"]
         logger.debug(f"Got response content: {content}")
-        row_generate_result = RowGenerateResult(is_successful=True, error_msg=None, content=content, temperature=temperature, max_tokens=max_tokens, model_name=self._model_name)
-        return BatchGenerateResult(num_rows=1, num_successful_rows=1, rows=[row_generate_result], is_successful=True, error_msg=None)
+        row_generate_result = RowGenerateResult(
+            is_successful=True,
+            error_msg=None,
+            content=content,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            model_name=self._model_name,
+        )
+        return BatchGenerateResult(
+            num_rows=1,
+            num_successful_rows=1,
+            rows=[row_generate_result],
+            is_successful=True,
+            error_msg=None,
+        )
+
+
+class LLama2ModelGenerator(BaseModelGenerator):
+    def __init__(
+        self,
+        prompt_formatter: PromptTemplate,
+        model_name_or_path: str,
+        batch_size: int = 1,
+        concurrency: int = 1,
+    ) -> None:
+        """
+        Args:
+            prompt_formatter (PromptTemplate): the prompt format to format the input dataframe into prompts row by row according to the column names
+            model_name (str): the model name
+            batch_size (int, optional): Batch size that will be used to run tasks. Defaults to 1, which means it's sequential.
+
+        """
+        super().__init__(prompt_formatter, batch_size, concurrency)
+        # require the concurrency to be 1 to avoid race condition during inference
+        if concurrency != 1:
+            raise ValueError(
+                "LLama2ModelGenerator currently only supports concurrency 1"
+            )
+        self._model_name_or_path = model_name_or_path
+        import torch
+        from transformers import (
+            AutoModelForCausalLM,
+            AutoTokenizer,
+            TextIteratorStreamer,
+        )
+
+        if torch.cuda.is_available():
+            self._model = AutoModelForCausalLM.from_pretrained(
+                model_name_or_path, torch_dtype=torch.float16, device_map="auto"
+            )
+        else:
+            raise ValueError("LLama2ModelGenerator currently only supports GPU")
+        self._tokenizer = AutoTokenizer.from_pretrained(model_name_or_path)
+
+    def _format_prompt(self, message: str, system_prompt_opt: str) -> str:
+        if system_prompt_opt is None:
+            texts = [f"[INST] <<SYS>>\n{system_prompt_opt}\n<</SYS>>\n\n"]
+            texts.append(f"{message.strip()} [/INST]")
+            return "".join(texts)
+        else:
+            texts = [f"[INST] \n\n"]
+            texts.append(f"{message.strip()} [/INST]")
+            return "".join(texts)
+
+    def _generate(
+        self, prompts: list, temperature: float, max_tokens=256, system_prompt=None
+    ) -> BatchGenerateResult:
+        from transformers import pipeline
+
+        all_formatted_prompts = [
+            self._format_prompt(message=message, system_prompt_opt=system_prompt)
+            for message in prompts
+        ]
+
+        top_p = 0.95
+        repetition_penalty = 1.15
+        pipe = pipeline(
+            "text-generation",
+            model=self._model,
+            tokenizer=self._tokenizer,
+            max_new_tokens=max_tokens,
+            temperature=temperature,
+            top_p=top_p,
+            repetition_penalty=repetition_penalty,
+            return_full_text=False,
+        )
+        responses = pipe(all_formatted_prompts)
+        rows = []
+        for response in responses:
+            response_content = response[0]["generated_text"]
+            row_generate_result = RowGenerateResult(
+                is_successful=True,
+                error_msg=None,
+                answer=response_content,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                model_name=self._model_name_or_path,
+                top_p=top_p,
+                repetition_penalty=repetition_penalty,
+            )
+            rows.append(row_generate_result)
+
+        return BatchGenerateResult(
+            num_rows=1,
+            num_successful_rows=1,
+            rows=rows,
+            is_successful=True,
+            error_msg=None,
+        )
