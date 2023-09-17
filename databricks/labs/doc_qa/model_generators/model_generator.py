@@ -78,6 +78,7 @@ class BaseModelGenerator:
         self._prompt_formatter = prompt_formatter
         self._batch_size = batch_size
         self._concurrency = concurrency
+        self.input_variables = prompt_formatter.variables
 
     def _generate(
         self, prompts: list, temperature: float, max_tokens=256, system_prompt=None
@@ -95,7 +96,7 @@ class BaseModelGenerator:
         Returns:
             EvalResult: the evaluation result
         """
-        prompt_batches = []
+        task_batches = []
         # First, traverse the input dataframe using batch size
         for i in range(0, len(input_df), self._batch_size):
             # Get the current batch
@@ -107,9 +108,13 @@ class BaseModelGenerator:
                 # Format the input dataframe into prompts
                 prompt = self._prompt_formatter.format(**row)
                 prompts.append(prompt)
-            prompt_batches.append(prompts)
+            task = {
+                "prompts": prompts,
+                "df": batch_df,
+            }
+            task_batches.append(task)
         logger.info(
-            f"Generated total number of batches for prompts: {len(prompt_batches)}"
+            f"Generated total number of batches for prompts: {len(task_batches)}"
         )
 
         # Call the _generate in parallel using multiple threads, each call with a batch of prompts
@@ -118,15 +123,20 @@ class BaseModelGenerator:
         ) as executor:
             future_to_batch = {
                 executor.submit(
-                    self._generate, prompts, temperature, max_tokens, system_prompt
-                ): prompts
-                for prompts in prompt_batches
+                    self._generate, task["prompts"], temperature, max_tokens, system_prompt
+                ): task
+                for task in task_batches
             }
             batch_generate_results = []
             for future in concurrent.futures.as_completed(future_to_batch):
-                prompts = future_to_batch[future]
+                task = future_to_batch[future]
                 try:
                     result = future.result()
+                    batch_df = task["df"]
+                    # Add the columns from batch_df where the column name is in the input_variables, add as attribute and value to the RowEvalResult
+                    for row in result.rows:
+                        for input_variable in self.input_variables:
+                            setattr(row, input_variable, batch_df[input_variable].iloc[0])
                     batch_generate_results.append(result)
                 except Exception as exc:
                     logger.error(f"Exception occurred when running the task: {exc}")
