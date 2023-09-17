@@ -394,7 +394,7 @@ Provided answer:
 
 Provided context: 
 {context}
-""").partial_fill(submission_instruction=openai_submission_instruction, grading_instruction=grading_instruction, grading_system_prompt_intro=grading_system_prompt_intro)
+""").partial_format(submission_instruction=openai_submission_instruction, grading_instruction=grading_instruction, grading_system_prompt_intro=grading_system_prompt_intro)
 
     return prompt_template, openai_grading_function
 
@@ -568,7 +568,7 @@ Provided context:
 {context}
 
 {end_prompt}
-""").partial_fill(submission_instruction=anthropic_submission_instruction, grading_instruction=grading_instruction_scale_10, grading_system_prompt_intro=grading_system_prompt_intro, end_prompt=anthropic_end_prompt)
+""").partial_format(submission_instruction=anthropic_submission_instruction, grading_instruction=grading_instruction_scale_10, grading_system_prompt_intro=grading_system_prompt_intro, end_prompt=anthropic_end_prompt)
 
 anthropic_grading_template_scale_4 = PromptTemplate("""{grading_system_prompt_intro}
 
@@ -586,7 +586,7 @@ Provided context:
 {context}
 
 {end_prompt}
-""").partial_fill(submission_instruction=anthropic_submission_instruction, grading_instruction=grading_instruction_scale_4, grading_system_prompt_intro=grading_system_prompt_intro, end_prompt=anthropic_end_prompt)
+""").partial_format(submission_instruction=anthropic_submission_instruction, grading_instruction=grading_instruction_scale_4, grading_system_prompt_intro=grading_system_prompt_intro, end_prompt=anthropic_end_prompt)
 
 
 anthropic_grading_template_scale_3 = PromptTemplate("""{grading_system_prompt_intro}
@@ -605,7 +605,7 @@ Provided context:
 {context}
 
 {end_prompt}
-""").partial_fill(submission_instruction=anthropic_submission_instruction, grading_instruction=grading_instruction_scale_3, grading_system_prompt_intro=grading_system_prompt_intro, end_prompt=anthropic_end_prompt)
+""").partial_format(submission_instruction=anthropic_submission_instruction, grading_instruction=grading_instruction_scale_3, grading_system_prompt_intro=grading_system_prompt_intro, end_prompt=anthropic_end_prompt)
 
 anthropic_grading_template_scale_1 = PromptTemplate("""{grading_system_prompt_intro}
 
@@ -623,4 +623,4 @@ Provided context:
 {context}
 
 {end_prompt}
-""").partial_fill(submission_instruction=anthropic_submission_instruction, grading_instruction=grading_instruction_scale_1, grading_system_prompt_intro=grading_system_prompt_intro, end_prompt=anthropic_end_prompt)
+""").partial_format(submission_instruction=anthropic_submission_instruction, grading_instruction=grading_instruction_scale_1, grading_system_prompt_intro=grading_system_prompt_intro, end_prompt=anthropic_end_prompt)

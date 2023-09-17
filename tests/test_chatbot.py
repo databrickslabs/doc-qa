@@ -49,8 +49,8 @@ def test_base_chat_bot():
     ]
     mock_whole_prompt_template = Mock(spec=PromptTemplate)
     mock_document_prompt_template = Mock(spec=PromptTemplate)
-    mock_whole_prompt_template.format_prompt.return_value = 'Formatted prompt'
-    mock_document_prompt_template.format_prompt.return_value = 'Formatted document prompt'
+    mock_whole_prompt_template.format.return_value = 'Formatted prompt'
+    mock_document_prompt_template.format.return_value = 'Formatted document prompt'
 
     bot = BaseChatBot(llm_provider=mock_llm_provider, retriever=mock_retriever, 
                       whole_prompt_template=mock_whole_prompt_template, 

@@ -50,7 +50,7 @@ def test_prompt_templates():
             )
 
             # Replace placeholders with dummy data
-            filled_template = prompt_template.format_prompt(
+            filled_template = prompt_template.format(
                 question="dummy_question",
                 answer="dummy_answer",
                 context="dummy_context",
