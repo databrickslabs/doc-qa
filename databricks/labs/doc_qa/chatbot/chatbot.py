@@ -63,7 +63,7 @@ class BaseChatBot:
         total_num_tokens = 0
         for index, document in enumerate(relevant_documents):
             # use all attributes of document, except for created_at or vector, as the format parameter
-            doc_formated_prompt = self._document_prompt_tempate.format_prompt(**{k: v for k, v in document.__dict__.items() if k not in ['created_at', 'vector']})
+            doc_formated_prompt = self._document_prompt_tempate.format(**{k: v for k, v in document.__dict__.items() if k not in ['created_at', 'vector']})
             num_tokens = len(self._enc.encode(doc_formated_prompt))
             if total_num_tokens + num_tokens > self._max_num_tokens_for_context:
                 logger.warning(f"Exceeding max number of tokens for context: {self._max_num_tokens_for_context}, existing on {index}th document out of {len(relevant_documents)} documents")
@@ -72,7 +72,7 @@ class BaseChatBot:
             document_str += doc_formated_prompt + "\n"
         logger.debug(f"Document string: {document_str}")
         # Then, format the whole prompt
-        whole_prompt = self._whole_prompt_template.format_prompt(context=document_str, prompt=prompt)
+        whole_prompt = self._whole_prompt_template.format(context=document_str, prompt=prompt)
         logger.debug(f"Whole prompt: {whole_prompt}")
         response = self._llm_provider.prompt(whole_prompt)
         return ChatResponse(content=response, relevant_documents=relevant_documents)

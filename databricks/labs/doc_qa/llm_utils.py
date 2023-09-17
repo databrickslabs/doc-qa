@@ -9,14 +9,14 @@ class PromptTemplate:
             # Automatically parse variables from template string
             self.variables = re.findall(r"\{(\w+)\}", template_str)
 
-    def format_prompt(self, **kwargs: dict):
+    def format(self, **kwargs: dict):
         # Only keep the kwargs that are in the variables
         kwargs = {k: v for k, v in kwargs.items() if k in self.variables}
 
         # Format the prompt with the provided values
         return self.template_str.format(**kwargs)
 
-    def partial_fill(self, **kwargs: dict):
+    def partial_format(self, **kwargs: dict):
         # Create a safe dictionary that returns the key if it doesn't exist in the dictionary
         safe_dict = {k: kwargs.get(k, '{' + k + '}') for k in self.variables}
 

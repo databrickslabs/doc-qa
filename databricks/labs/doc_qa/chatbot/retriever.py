@@ -167,7 +167,7 @@ class CsvRetriever(BaseRetriever):
         for index, row in df.iterrows():
             created_at = datetime.now()
             document = Document(created_at=created_at, **row.to_dict())
-            query = embed_prompt_template.format_prompt(**{column_name: getattr(document, column_name) for column_name in additional_column_names})
+            query = embed_prompt_template.format(**{column_name: getattr(document, column_name) for column_name in additional_column_names})
             documents.append(document)
             queries.append(query)
         logger.info(f"Loaded {len(documents)} documents from {csv_path}")

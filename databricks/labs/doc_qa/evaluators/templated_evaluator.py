@@ -257,14 +257,14 @@ class OpenAIEvaluator(BaseLlmEvaluator):
 
     def grade_row(self, row_input: RowInput) -> RowEvalResult:
         if self.system_prompt_template is not None:
-            system_prompt = self.system_prompt_template.format_prompt(**{key: getattr(row_input, key) for key in self.input_columns})
+            system_prompt = self.system_prompt_template.format(**{key: getattr(row_input, key) for key in self.input_columns})
             messages = [
                 {"role": "system", "content": system_prompt},
             ]
         else:
             messages = []
 
-        user_prompt = self.grading_prompt_tempate.format_prompt(**{key: getattr(row_input, key) for key in self.input_columns})
+        user_prompt = self.grading_prompt_tempate.format(**{key: getattr(row_input, key) for key in self.input_columns})
         messages.append({"role": "user", "content": user_prompt})
 
         # For gpt-3.5-turbo-16k, putting everything into the system prompt will get it to not call function at around 50% chances
@@ -297,7 +297,7 @@ class AnthropicEvaluator(BaseLlmEvaluator):
         super().__init__(model=model, temperature=temperature, grading_prompt_tempate=grading_prompt_tempate, input_columns=input_columns, output_parameters=output_parameters, retry_policy=retry_policy)
 
     def grade_row(self, row_input: RowInput) -> RowEvalResult:
-        user_prompt = self.grading_prompt_tempate.format_prompt(**{key: getattr(row_input, key) for key in self.input_columns})
+        user_prompt = self.grading_prompt_tempate.format(**{key: getattr(row_input, key) for key in self.input_columns})
         response_message = anthropic_provider.request_anthropic(prompt=user_prompt, temperature=self.temperature, model=self.model)
         # Add a new line to the response_message at the end
         response_message += "\n"
