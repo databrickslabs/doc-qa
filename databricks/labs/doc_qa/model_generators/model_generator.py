@@ -217,6 +217,7 @@ class OpenAiModelGenerator(BaseModelGenerator):
             temperature=temperature,
             max_tokens=max_tokens,
             model_name=self._model_name,
+            prompt=user_prompt,
         )
         return BatchGenerateResult(
             num_rows=1,
@@ -241,6 +242,8 @@ class LLama2ModelGenerator(BaseModelGenerator):
             model_name (str): the model name
             batch_size (int, optional): Batch size that will be used to run tasks. Defaults to 1, which means it's sequential.
 
+        Recommendations:
+            - for A100 80GB, use batch_size 16 for llama-2-13b-chat
         """
         super().__init__(prompt_formatter, batch_size, concurrency)
         # require the concurrency to be 1 to avoid race condition during inference
@@ -298,7 +301,7 @@ class LLama2ModelGenerator(BaseModelGenerator):
         )
         responses = pipe(all_formatted_prompts)
         rows = []
-        for response in responses:
+        for index, response in enumerate(responses):
             response_content = response[0]["generated_text"]
             row_generate_result = RowGenerateResult(
                 is_successful=True,
@@ -309,12 +312,13 @@ class LLama2ModelGenerator(BaseModelGenerator):
                 model_name=self._model_name_or_path,
                 top_p=top_p,
                 repetition_penalty=repetition_penalty,
+                prompts=all_formatted_prompts[index],
             )
             rows.append(row_generate_result)
 
         return BatchGenerateResult(
-            num_rows=1,
-            num_successful_rows=1,
+            num_rows=len(rows),
+            num_successful_rows=len(rows),
             rows=rows,
             is_successful=True,
             error_msg=None,
