@@ -134,9 +134,9 @@ class BaseModelGenerator:
                     result = future.result()
                     batch_df = task["df"]
                     # Add the columns from batch_df where the column name is in the input_variables, add as attribute and value to the RowEvalResult
-                    for row in result.rows:
+                    for index, row in enumerate(result.rows):
                         for input_variable in self.input_variables:
-                            setattr(row, input_variable, batch_df[input_variable].iloc[0])
+                            setattr(row, input_variable, batch_df[input_variable].iloc[index])
                     batch_generate_results.append(result)
                 except Exception as exc:
                     logger.error(f"Exception occurred when running the task: {exc}")
@@ -278,7 +278,7 @@ class LLama2ModelGenerator(BaseModelGenerator):
         self._tokenizer = AutoTokenizer.from_pretrained(model_name_or_path)
 
     def _format_prompt(self, message: str, system_prompt_opt: str) -> str:
-        if system_prompt_opt is None:
+        if system_prompt_opt is not None:
             texts = [f"[INST] <<SYS>>\n{system_prompt_opt}\n<</SYS>>\n\n"]
             texts.append(f"{message.strip()} [/INST]")
             return "".join(texts)
