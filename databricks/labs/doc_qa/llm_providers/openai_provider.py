@@ -6,7 +6,7 @@ from tenacity import retry, stop_after_attempt, stop_after_delay, wait_fixed, re
 import logging 
 
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__.split(".")[-1])
 
 
 openai_token = os.getenv('OPENAI_API_KEY')

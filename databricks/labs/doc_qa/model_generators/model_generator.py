@@ -6,7 +6,7 @@ import concurrent.futures
 
 logging.basicConfig(level=logging.INFO)
 # Instead of using full name, only use the module name
-logger = logging.getLogger(__name__.split(".")[0])
+logger = logging.getLogger(__name__.split(".")[-1])
 
 class RowGenerateResult:
     """
@@ -450,6 +450,7 @@ class DriverProxyModelGenerator(BaseModelGenerator):
         self,
         url: str,
         pat_token: str,
+        format_prompt_func: callable,
         prompt_formatter: PromptTemplate,
         batch_size: int = 32,
         concurrency: int = 1,
@@ -466,16 +467,7 @@ class DriverProxyModelGenerator(BaseModelGenerator):
         super().__init__(prompt_formatter, batch_size, concurrency)
         self._url = url
         self._pat_token = pat_token
-
-    def _format_prompt(self, message: str, system_prompt_opt: str) -> str:
-        if system_prompt_opt is not None:
-            texts = [f"[INST] <<SYS>>\n{system_prompt_opt}\n<</SYS>>\n\n"]
-            texts.append(f"{message.strip()} [/INST]")
-            return "".join(texts)
-        else:
-            texts = [f"[INST] \n\n"]
-            texts.append(f"{message.strip()} [/INST]")
-            return "".join(texts)
+        self._format_prompt_func = format_prompt_func
 
     def _generate(
         self, prompts: list, temperature: float, max_tokens=256, system_prompt=None
@@ -483,7 +475,7 @@ class DriverProxyModelGenerator(BaseModelGenerator):
         top_p = 0.95
 
         all_formatted_prompts = [
-            self._format_prompt(message=message, system_prompt_opt=system_prompt)
+            self._format_prompt_func(message=message, system_prompt_opt=system_prompt)
             for message in prompts
         ]
 
