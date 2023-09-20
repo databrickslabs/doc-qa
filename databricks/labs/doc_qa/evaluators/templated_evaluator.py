@@ -15,7 +15,7 @@ import json
 
 
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__.split(".")[0])
 
 
 class ParameterType(Enum):
