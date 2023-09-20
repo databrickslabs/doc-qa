@@ -451,8 +451,8 @@ class DriverProxyModelGenerator(BaseModelGenerator):
         url: str,
         pat_token: str,
         prompt_formatter: PromptTemplate,
-        batch_size: int = 8,
-        concurrency: int = 4,
+        batch_size: int = 32,
+        concurrency: int = 1,
     ) -> None:
         """
         Args:
@@ -513,7 +513,6 @@ class DriverProxyModelGenerator(BaseModelGenerator):
                 answer=response_content,
                 temperature=temperature,
                 max_tokens=max_tokens,
-                model_name=self._model_name_or_path,
                 top_p=top_p,
                 prompts=all_formatted_prompts[index],
             )
