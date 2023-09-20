@@ -10,7 +10,6 @@ logger = logging.getLogger(__name__)
 
 
 openai_token = os.getenv('OPENAI_API_KEY')
-openai_org = os.getenv('OPENAI_ORGANIZATION')
 
 class StatusCode429Error(Exception):
     pass
@@ -24,7 +23,6 @@ def request_openai(messages, functions=[], temperature=0.0, model="gpt-4"):
   headers = {
       "Content-Type": "application/json",
       "Authorization": f"Bearer {openai_token}",
-      "OpenAI-Organization": openai_org,
   }
   data = {
       "model": model,
