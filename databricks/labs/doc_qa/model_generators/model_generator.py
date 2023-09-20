@@ -506,7 +506,7 @@ class DriverProxyModelGenerator(BaseModelGenerator):
         # Extract the "outputs" as a JSON array from the response
         outputs = response.json()["outputs"]
         rows = []
-        for index, response_content in outputs:
+        for index, response_content in enumerate(outputs):
             row_generate_result = RowGenerateResult(
                 is_successful=True,
                 error_msg=None,
