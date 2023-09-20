@@ -443,3 +443,86 @@ class VicunaModelGenerator(BaseModelGenerator):
             is_successful=True,
             error_msg=None,
         )
+
+
+class DriverProxyModelGenerator(BaseModelGenerator):
+    def __init__(
+        self,
+        url: str,
+        pat_token: str,
+        prompt_formatter: PromptTemplate,
+        batch_size: int = 8,
+        concurrency: int = 4,
+    ) -> None:
+        """
+        Args:
+            prompt_formatter (PromptTemplate): the prompt format to format the input dataframe into prompts row by row according to the column names
+            model_name (str): the model name
+            batch_size (int, optional): Batch size that will be used to run tasks. Defaults to 1, which means it's sequential.
+
+        Recommendations:
+            - for A100 80GB, use batch_size 16 for llama-2-13b-chat
+        """
+        super().__init__(prompt_formatter, batch_size, concurrency)
+        self._url = url
+        self._pat_token = pat_token
+
+    def _format_prompt(self, message: str, system_prompt_opt: str) -> str:
+        if system_prompt_opt is not None:
+            texts = [f"[INST] <<SYS>>\n{system_prompt_opt}\n<</SYS>>\n\n"]
+            texts.append(f"{message.strip()} [/INST]")
+            return "".join(texts)
+        else:
+            texts = [f"[INST] \n\n"]
+            texts.append(f"{message.strip()} [/INST]")
+            return "".join(texts)
+
+    def _generate(
+        self, prompts: list, temperature: float, max_tokens=256, system_prompt=None
+    ) -> BatchGenerateResult:
+        top_p = 0.95
+
+        all_formatted_prompts = [
+            self._format_prompt(message=message, system_prompt_opt=system_prompt)
+            for message in prompts
+        ]
+
+        import requests
+        import json
+
+        headers = {
+            "Authentication": f"Bearer {self._pat_token}",
+            "Content-Type": "application/json",
+        }
+
+        data = {
+            "prompts": all_formatted_prompts,
+            "temperature": temperature,
+            "max_tokens": max_tokens,
+        }
+
+        response = requests.post(self._url, headers=headers, data=json.dumps(data))
+
+        # Extract the "outputs" as a JSON array from the response
+        outputs = response.json()["outputs"]
+        rows = []
+        for index, response_content in outputs:
+            row_generate_result = RowGenerateResult(
+                is_successful=True,
+                error_msg=None,
+                answer=response_content,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                model_name=self._model_name_or_path,
+                top_p=top_p,
+                prompts=all_formatted_prompts[index],
+            )
+            rows.append(row_generate_result)
+
+        return BatchGenerateResult(
+            num_rows=len(rows),
+            num_successful_rows=len(rows),
+            rows=rows,
+            is_successful=True,
+            error_msg=None,
+        )
