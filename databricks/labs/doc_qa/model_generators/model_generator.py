@@ -582,6 +582,10 @@ class vLllmOpenAICompletionFormatModelGenerator(BaseModelGenerator):
         response = requests.post(self._url, headers=headers, data=json.dumps(data))
 
         # Extract the "outputs" as a JSON array from the response
+        if "choices" not in response.json():
+            logging.error(
+                f"Error while generating output, status code {response.status_code}, text: {response.text}. For row {prompts[0]}"
+            )
         choices = response.json()["choices"]
         rows = []
         for index, choice in enumerate(choices):

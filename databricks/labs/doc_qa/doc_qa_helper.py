@@ -90,6 +90,7 @@ def generate_and_evaluate(
 
     result_df = generate_result.to_dataframe()
 
+    logging.info(f"Finished generating {len(result_df)} rows, starting evaluation")
     eval_result = evaluator.run_eval(
         dataset_df=result_df, concurrency=20, catch_error=True
     )
