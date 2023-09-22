@@ -8,6 +8,7 @@ logging.basicConfig(level=logging.INFO)
 # Instead of using full name, only use the module name
 logger = logging.getLogger(__name__.split(".")[-1])
 
+
 class RowGenerateResult:
     """
     A RowEvalResult object contains the evaluation result for a single row in the evaluation dataframe.
@@ -499,6 +500,92 @@ class DriverProxyModelGenerator(BaseModelGenerator):
         outputs = response.json()["outputs"]
         rows = []
         for index, response_content in enumerate(outputs):
+            row_generate_result = RowGenerateResult(
+                is_successful=True,
+                error_msg=None,
+                answer=response_content,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                top_p=top_p,
+                prompts=all_formatted_prompts[index],
+            )
+            rows.append(row_generate_result)
+
+        return BatchGenerateResult(
+            num_rows=len(rows),
+            num_successful_rows=len(rows),
+            rows=rows,
+            is_successful=True,
+            error_msg=None,
+        )
+
+
+# The model generator based on the openAI format implemented by the vLLM framework:
+# Reference: https://vllm.readthedocs.io/en/latest/getting_started/quickstart.html#openai-compatible-server
+class vLllmOpenAICompletionFormatModelGenerator(BaseModelGenerator):
+    def __init__(
+        self,
+        model_name,
+        url: str,
+        pat_token: str,
+        format_prompt_func: callable,
+        prompt_formatter: PromptTemplate,
+        batch_size: int = 1,
+        concurrency: int = 64,
+    ) -> None:
+        """
+        Args:
+            prompt_formatter (PromptTemplate): the prompt format to format the input dataframe into prompts row by row according to the column names
+            model_name (str): the model name
+            batch_size (int, optional): Batch size that will be used to run tasks. Defaults to 1, which means it's sequential.
+        """
+        super().__init__(prompt_formatter, batch_size, concurrency)
+        # check the batch_size can only be 1 for this model generator
+        if batch_size != 1:
+            raise ValueError(
+                f"batch_size {batch_size} is not supported for {self.__class__.__name__}, only 1 is supported"
+            )
+        self._model_name = model_name
+        self._url = url
+        self._pat_token = pat_token
+        self._format_prompt_func = format_prompt_func
+
+    def _generate(
+        self, prompts: list, temperature: float, max_tokens=256, system_prompt=None
+    ) -> BatchGenerateResult:
+        if temperature == 0.0:
+            top_p = 1
+        else:
+            top_p = 0.95
+
+        all_formatted_prompts = [
+            self._format_prompt_func(message=message, system_prompt_opt=system_prompt)
+            for message in prompts
+        ]
+
+        import requests
+        import json
+
+        headers = {
+            "Authentication": f"Bearer {self._pat_token}",
+            "Content-Type": "application/json",
+        }
+
+        data = {
+            "model": self._model_name,
+            "prompt": all_formatted_prompts[0],
+            "temperature": temperature,
+            "max_tokens": max_tokens,
+            "top_p": top_p,
+        }
+
+        response = requests.post(self._url, headers=headers, data=json.dumps(data))
+
+        # Extract the "outputs" as a JSON array from the response
+        choices = response.json()["choices"]
+        rows = []
+        for index, choice in enumerate(choices):
+            response_content = choice["text"]
             row_generate_result = RowGenerateResult(
                 is_successful=True,
                 error_msg=None,
