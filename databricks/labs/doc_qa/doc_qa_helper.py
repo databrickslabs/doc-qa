@@ -15,14 +15,6 @@ from databricks.labs.doc_qa.variables.doc_qa_template_variables import (
 from databricks.labs.doc_qa.variables.doc_qa_template_variables import (
     get_openai_grading_template_and_function,
 )
-from databricks.labs.doc_qa.llm_utils import PromptTemplate
-from databricks.labs.doc_qa.model_generators.model_generator import (
-    OpenAiModelGenerator,
-    BaseModelGenerator,
-    BatchGenerateResult,
-    RowGenerateResult,
-    DriverProxyModelGenerator,
-)
 
 # show debug log for all loggers
 import logging
@@ -68,7 +60,7 @@ def vllm_vicuna_model_generator(url, pat_token, model_name):
     return model_generator
 
 
-def vllm_llama_model_generator(url, pat_token, model_name):
+def vllm_llama2_model_generator(url, pat_token, model_name):
     from databricks.labs.doc_qa.model_generators.model_generator import (
         vLllmOpenAICompletionFormatModelGenerator,
     )
