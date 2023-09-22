@@ -79,3 +79,18 @@ def vllm_llama2_model_generator(url, pat_token, model_name):
         concurrency=100,
     )
     return model_generator
+
+
+def generate_and_evaluate(
+    input_df, model_generator, evaluator, temperature=0, max_tokens=200
+):
+    generate_result = model_generator.run_tasks(
+        input_df=input_df, temperature=temperature, max_tokens=max_tokens
+    )
+
+    result_df = generate_result.to_dataframe()
+
+    eval_result = evaluator.run_eval(
+        dataset_df=result_df, concurrency=20, catch_error=True
+    )
+    return eval_result
