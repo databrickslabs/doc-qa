@@ -325,6 +325,7 @@ grading_instruction_scale_1_no_example = """
 
 """
 
+
 def get_openai_grading_template_and_function(scale: int, level_of_details: int):
     """
     scale has these possible values: 1, 3, 4, 10
@@ -380,7 +381,8 @@ def get_openai_grading_template_and_function(scale: int, level_of_details: int):
         openai_grading_function = openai_evaluator_function_scale_10
     else:
         raise ValueError(f"scale {scale} is not supported")
-    prompt_template = PromptTemplate(""" {grading_system_prompt_intro}
+    prompt_template = PromptTemplate(
+        """ {grading_system_prompt_intro}
 
 {submission_instruction}
 
@@ -394,149 +396,183 @@ Provided answer:
 
 Provided context: 
 {context}
-""").partial_format(submission_instruction=openai_submission_instruction, grading_instruction=grading_instruction, grading_system_prompt_intro=grading_system_prompt_intro)
+"""
+    ).partial_format(
+        submission_instruction=openai_submission_instruction,
+        grading_instruction=grading_instruction,
+        grading_system_prompt_intro=grading_system_prompt_intro,
+    )
 
     return prompt_template, openai_grading_function
 
-openai_evaluator_function_scale_10 =    {
-    'name': 'grading_function',
-    'description': 'Call this function to submit the grading for the answer',
-    'parameters': {
-        'type': 'object',
-        'properties': {
-            'reasoning_for_correctness': {
-                'type': 'string',
-                'description': 'Your reasoning for giving the grading for the correctness of the answer. Provide 5 to 30 words explanation.'
+
+openai_evaluator_function_scale_10 = {
+    "name": "grading_function",
+    "description": "Call this function to submit the grading for the answer",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "reasoning_for_correctness": {
+                "type": "string",
+                "description": "Your reasoning for giving the grading for the correctness of the answer. Provide 5 to 30 words explanation.",
             },
-            'correctness': {
-                'type': 'integer',
-                'description': 'Your integer grading between 0 to 10 for the correctness of the answer.'
+            "correctness": {
+                "type": "integer",
+                "description": "Your integer grading between 0 to 10 for the correctness of the answer.",
             },
-            'reasoning_for_comprehensiveness': {
-                'type': 'string',
-                'description': 'Your reasoning for giving the grading for the comprehensiveness of the answer. Provide 5 to 30 words explanation.'
+            "reasoning_for_comprehensiveness": {
+                "type": "string",
+                "description": "Your reasoning for giving the grading for the comprehensiveness of the answer. Provide 5 to 30 words explanation.",
             },
-            'comprehensiveness': {
-                'type': 'integer',
-                'description': 'Your integer grading between 0 to 10 for the comprehensiveness of the answer.'
+            "comprehensiveness": {
+                "type": "integer",
+                "description": "Your integer grading between 0 to 10 for the comprehensiveness of the answer.",
             },
-            'reasoning_for_readability': {
-                'type': 'string',
-                'description': 'Your reasoning for giving the grading for the readability of the answer. Provide 5 to 30 words explanation.'
+            "reasoning_for_readability": {
+                "type": "string",
+                "description": "Your reasoning for giving the grading for the readability of the answer. Provide 5 to 30 words explanation.",
             },
-            'readability': {
-                'type': 'integer',
-                'description': 'Your integer grading between 0 to 10 for the readability of the answer.'
+            "readability": {
+                "type": "integer",
+                "description": "Your integer grading between 0 to 10 for the readability of the answer.",
             },
         },
-        'required': ['reasoning_for_correctness', 'correctness', 'reasoning_for_comprehensiveness', 'comprehensiveness', 'reasoning_for_readability', 'readability']
-    }
+        "required": [
+            "reasoning_for_correctness",
+            "correctness",
+            "reasoning_for_comprehensiveness",
+            "comprehensiveness",
+            "reasoning_for_readability",
+            "readability",
+        ],
+    },
 }
 
-openai_evaluator_function_scale_4 =    {
-    'name': 'grading_function',
-    'description': 'Call this function to submit the grading for the answer',
-    'parameters': {
-        'type': 'object',
-        'properties': {
-            'reasoning_for_correctness': {
-                'type': 'string',
-                'description': 'Your reasoning for giving the grading for the correctness of the answer. Provide 5 to 30 words explanation.'
+openai_evaluator_function_scale_4 = {
+    "name": "grading_function",
+    "description": "Call this function to submit the grading for the answer",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "reasoning_for_correctness": {
+                "type": "string",
+                "description": "Your reasoning for giving the grading for the correctness of the answer. Provide 5 to 30 words explanation.",
             },
-            'correctness': {
-                'type': 'integer',
-                'description': 'Your integer grading between 0 to 4 for the correctness of the answer.'
+            "correctness": {
+                "type": "integer",
+                "description": "Your integer grading between 0 to 4 for the correctness of the answer.",
             },
-            'reasoning_for_comprehensiveness': {
-                'type': 'string',
-                'description': 'Your reasoning for giving the grading for the comprehensiveness of the answer. Provide 5 to 30 words explanation.'
+            "reasoning_for_comprehensiveness": {
+                "type": "string",
+                "description": "Your reasoning for giving the grading for the comprehensiveness of the answer. Provide 5 to 30 words explanation.",
             },
-            'comprehensiveness': {
-                'type': 'integer',
-                'description': 'Your integer grading between 0 to 4 for the comprehensiveness of the answer.'
+            "comprehensiveness": {
+                "type": "integer",
+                "description": "Your integer grading between 0 to 4 for the comprehensiveness of the answer.",
             },
-            'reasoning_for_readability': {
-                'type': 'string',
-                'description': 'Your reasoning for giving the grading for the readability of the answer. Provide 5 to 30 words explanation.'
+            "reasoning_for_readability": {
+                "type": "string",
+                "description": "Your reasoning for giving the grading for the readability of the answer. Provide 5 to 30 words explanation.",
             },
-            'readability': {
-                'type': 'integer',
-                'description': 'Your integer grading between 0 to 4 for the readability of the answer.'
+            "readability": {
+                "type": "integer",
+                "description": "Your integer grading between 0 to 4 for the readability of the answer.",
             },
         },
-        'required': ['reasoning_for_correctness', 'correctness', 'reasoning_for_comprehensiveness', 'comprehensiveness', 'reasoning_for_readability', 'readability']
-    }
+        "required": [
+            "reasoning_for_correctness",
+            "correctness",
+            "reasoning_for_comprehensiveness",
+            "comprehensiveness",
+            "reasoning_for_readability",
+            "readability",
+        ],
+    },
 }
 
 
-openai_evaluator_function_scale_3 =    {
-    'name': 'grading_function',
-    'description': 'Call this function to submit the grading for the answer',
-    'parameters': {
-        'type': 'object',
-        'properties': {
-            'reasoning_for_correctness': {
-                'type': 'string',
-                'description': 'Your reasoning for giving the grading for the correctness of the answer. Provide 5 to 30 words explanation.'
+openai_evaluator_function_scale_3 = {
+    "name": "grading_function",
+    "description": "Call this function to submit the grading for the answer",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "reasoning_for_correctness": {
+                "type": "string",
+                "description": "Your reasoning for giving the grading for the correctness of the answer. Provide 5 to 30 words explanation.",
             },
-            'correctness': {
-                'type': 'integer',
-                'description': 'Your integer grading between 0 to 3 for the correctness of the answer.'
+            "correctness": {
+                "type": "integer",
+                "description": "Your integer grading between 0 to 3 for the correctness of the answer.",
             },
-            'reasoning_for_comprehensiveness': {
-                'type': 'string',
-                'description': 'Your reasoning for giving the grading for the comprehensiveness of the answer. Provide 5 to 30 words explanation.'
+            "reasoning_for_comprehensiveness": {
+                "type": "string",
+                "description": "Your reasoning for giving the grading for the comprehensiveness of the answer. Provide 5 to 30 words explanation.",
             },
-            'comprehensiveness': {
-                'type': 'integer',
-                'description': 'Your integer grading between 0 to 3 for the comprehensiveness of the answer.'
+            "comprehensiveness": {
+                "type": "integer",
+                "description": "Your integer grading between 0 to 3 for the comprehensiveness of the answer.",
             },
-            'reasoning_for_readability': {
-                'type': 'string',
-                'description': 'Your reasoning for giving the grading for the readability of the answer. Provide 5 to 30 words explanation.'
+            "reasoning_for_readability": {
+                "type": "string",
+                "description": "Your reasoning for giving the grading for the readability of the answer. Provide 5 to 30 words explanation.",
             },
-            'readability': {
-                'type': 'integer',
-                'description': 'Your integer grading between 0 to 3 for the readability of the answer.'
+            "readability": {
+                "type": "integer",
+                "description": "Your integer grading between 0 to 3 for the readability of the answer.",
             },
         },
-        'required': ['reasoning_for_correctness', 'correctness', 'reasoning_for_comprehensiveness', 'comprehensiveness', 'reasoning_for_readability', 'readability']
-    }
+        "required": [
+            "reasoning_for_correctness",
+            "correctness",
+            "reasoning_for_comprehensiveness",
+            "comprehensiveness",
+            "reasoning_for_readability",
+            "readability",
+        ],
+    },
 }
 
-openai_evaluator_function_scale_1 =    {
-    'name': 'grading_function',
-    'description': 'Call this function to submit the grading for the answer',
-    'parameters': {
-        'type': 'object',
-        'properties': {
-            'reasoning_for_correctness': {
-                'type': 'string',
-                'description': 'Your reasoning for giving the grading for the correctness of the answer. Provide 5 to 30 words explanation.'
+openai_evaluator_function_scale_1 = {
+    "name": "grading_function",
+    "description": "Call this function to submit the grading for the answer",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "reasoning_for_correctness": {
+                "type": "string",
+                "description": "Your reasoning for giving the grading for the correctness of the answer. Provide 5 to 30 words explanation.",
             },
-            'correctness': {
-                'type': 'integer',
-                'description': 'Your integer grading between 0 or 1 for the correctness of the answer.'
+            "correctness": {
+                "type": "integer",
+                "description": "Your integer grading between 0 or 1 for the correctness of the answer.",
             },
-            'reasoning_for_comprehensiveness': {
-                'type': 'string',
-                'description': 'Your reasoning for giving the grading for the comprehensiveness of the answer. Provide 5 to 30 words explanation.'
+            "reasoning_for_comprehensiveness": {
+                "type": "string",
+                "description": "Your reasoning for giving the grading for the comprehensiveness of the answer. Provide 5 to 30 words explanation.",
             },
-            'comprehensiveness': {
-                'type': 'integer',
-                'description': 'Your integer grading between 0 or 1 for the comprehensiveness of the answer.'
+            "comprehensiveness": {
+                "type": "integer",
+                "description": "Your integer grading between 0 or 1 for the comprehensiveness of the answer.",
             },
-            'reasoning_for_readability': {
-                'type': 'string',
-                'description': 'Your reasoning for giving the grading for the readability of the answer. Provide 5 to 30 words explanation.'
+            "reasoning_for_readability": {
+                "type": "string",
+                "description": "Your reasoning for giving the grading for the readability of the answer. Provide 5 to 30 words explanation.",
             },
-            'readability': {
-                'type': 'integer',
-                'description': 'Your integer grading between 0 or 1 for the readability of the answer.'
+            "readability": {
+                "type": "integer",
+                "description": "Your integer grading between 0 or 1 for the readability of the answer.",
             },
         },
-        'required': ['reasoning_for_correctness', 'correctness', 'reasoning_for_comprehensiveness', 'comprehensiveness', 'reasoning_for_readability', 'readability']
-    }
+        "required": [
+            "reasoning_for_correctness",
+            "correctness",
+            "reasoning_for_comprehensiveness",
+            "comprehensiveness",
+            "reasoning_for_readability",
+            "readability",
+        ],
+    },
 }
 
 
@@ -552,7 +588,8 @@ Score for readability: [your score number for the readability of the answer]
 
 anthropic_end_prompt = """Please provide your grading for the correctness, comprehensiveness and readability of the answer"""
 
-anthropic_grading_template_scale_10 = PromptTemplate("""{grading_system_prompt_intro}
+anthropic_grading_template_scale_10 = PromptTemplate(
+    """{grading_system_prompt_intro}
 
 {submission_instruction}
 
@@ -568,28 +605,16 @@ Provided context:
 {context}
 
 {end_prompt}
-""").partial_format(submission_instruction=anthropic_submission_instruction, grading_instruction=grading_instruction_scale_10, grading_system_prompt_intro=grading_system_prompt_intro, end_prompt=anthropic_end_prompt)
+"""
+).partial_format(
+    submission_instruction=anthropic_submission_instruction,
+    grading_instruction=grading_instruction_scale_10,
+    grading_system_prompt_intro=grading_system_prompt_intro,
+    end_prompt=anthropic_end_prompt,
+)
 
-anthropic_grading_template_scale_4 = PromptTemplate("""{grading_system_prompt_intro}
-
-{submission_instruction}
-
-{grading_instruction}
-
-Provided question:
-{question}
-
-Provided answer: 
-{answer}
-
-Provided context: 
-{context}
-
-{end_prompt}
-""").partial_format(submission_instruction=anthropic_submission_instruction, grading_instruction=grading_instruction_scale_4, grading_system_prompt_intro=grading_system_prompt_intro, end_prompt=anthropic_end_prompt)
-
-
-anthropic_grading_template_scale_3 = PromptTemplate("""{grading_system_prompt_intro}
+anthropic_grading_template_scale_4 = PromptTemplate(
+    """{grading_system_prompt_intro}
 
 {submission_instruction}
 
@@ -605,9 +630,17 @@ Provided context:
 {context}
 
 {end_prompt}
-""").partial_format(submission_instruction=anthropic_submission_instruction, grading_instruction=grading_instruction_scale_3, grading_system_prompt_intro=grading_system_prompt_intro, end_prompt=anthropic_end_prompt)
+"""
+).partial_format(
+    submission_instruction=anthropic_submission_instruction,
+    grading_instruction=grading_instruction_scale_4,
+    grading_system_prompt_intro=grading_system_prompt_intro,
+    end_prompt=anthropic_end_prompt,
+)
 
-anthropic_grading_template_scale_1 = PromptTemplate("""{grading_system_prompt_intro}
+
+anthropic_grading_template_scale_3 = PromptTemplate(
+    """{grading_system_prompt_intro}
 
 {submission_instruction}
 
@@ -623,4 +656,75 @@ Provided context:
 {context}
 
 {end_prompt}
-""").partial_format(submission_instruction=anthropic_submission_instruction, grading_instruction=grading_instruction_scale_1, grading_system_prompt_intro=grading_system_prompt_intro, end_prompt=anthropic_end_prompt)
+"""
+).partial_format(
+    submission_instruction=anthropic_submission_instruction,
+    grading_instruction=grading_instruction_scale_3,
+    grading_system_prompt_intro=grading_system_prompt_intro,
+    end_prompt=anthropic_end_prompt,
+)
+
+anthropic_grading_template_scale_1 = PromptTemplate(
+    """{grading_system_prompt_intro}
+
+{submission_instruction}
+
+{grading_instruction}
+
+Provided question:
+{question}
+
+Provided answer: 
+{answer}
+
+Provided context: 
+{context}
+
+{end_prompt}
+"""
+).partial_format(
+    submission_instruction=anthropic_submission_instruction,
+    grading_instruction=grading_instruction_scale_1,
+    grading_system_prompt_intro=grading_system_prompt_intro,
+    end_prompt=anthropic_end_prompt,
+)
+
+
+def vicuna_format_prompt_func(message: str, system_prompt_opt: str) -> str:
+    if system_prompt_opt is not None:
+        return f"""{system_prompt_opt}
+
+        USER: {message}
+        ASSISTANT:
+        """
+    else:
+        return f"""A chat between a curious user and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the user's questions.
+
+        USER: {message}
+        ASSISTANT:
+        """
+
+def llama2_format_prompt_func(message: str, system_prompt_opt: str) -> str:
+    if system_prompt_opt is not None:
+        texts = [f"[INST] <<SYS>>\n{system_prompt_opt}\n<</SYS>>\n\n"]
+        texts.append(f"{message.strip()} [/INST]")
+        return "".join(texts)
+    else:
+        texts = [f"[INST] \n\n"]
+        texts.append(f"{message.strip()} [/INST]")
+        return "".join(texts)
+
+
+doc_qa_task_prompt_template = PromptTemplate(
+    """You are a helpful, respectful and honest assistant. Your task is to help answering a question based on the provided context, please think step by step to make sure your answer is correct, comprehensive and easy to read. Please do not ask for further information, what you will be provided is already the complete information. 
+
+Here is the question: 
+{question}
+
+
+Here is the context:
+{context}
+
+Please give your answer:
+"""
+)
