@@ -232,7 +232,7 @@ class OpenAiModelGenerator(BaseModelGenerator):
         row_generate_result = RowGenerateResult(
             is_successful=True,
             error_msg=None,
-            content=content,
+            answer=content,
             temperature=temperature,
             max_tokens=max_tokens,
             model_name=self._model_name,
@@ -584,7 +584,7 @@ class vLllmOpenAICompletionFormatModelGenerator(BaseModelGenerator):
         # Extract the "outputs" as a JSON array from the response
         if "choices" not in response.json():
             logging.error(
-                f"Error while generating output, status code {response.status_code}, text: {response.text}. For row {prompts[0]}"
+                f"Error while generating output, status code {response.status_code}, text: {response.text}"
             )
         choices = response.json()["choices"]
         rows = []
