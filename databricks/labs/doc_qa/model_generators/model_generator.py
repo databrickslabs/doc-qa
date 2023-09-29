@@ -608,3 +608,73 @@ class vLllmOpenAICompletionFormatModelGenerator(BaseModelGenerator):
             is_successful=True,
             error_msg=None,
         )
+
+
+class vLllmLocalModelGenerator(BaseModelGenerator):
+    def __init__(
+        self,
+        hf_model_name,
+        format_prompt_func: callable,
+        prompt_formatter: PromptTemplate,
+        batch_size: int = 100,
+        concurrency: int = 1,
+        max_num_batched_tokens=4096,
+    ) -> None:
+        """
+        Args:
+            prompt_formatter (PromptTemplate): the prompt format to format the input dataframe into prompts row by row according to the column names
+            model_name (str): the huggingface model name
+        """
+        super().__init__(prompt_formatter, batch_size, concurrency)
+        from vllm import LLM
+
+        # check the batch_size can only be 1 for this model generator
+        if concurrency != 1:
+            raise ValueError(
+                f"concurrency {concurrency} is not supported for {self.__class__.__name__}, only 1 is supported"
+            )
+        self._hf_model_name = hf_model_name
+        self._format_prompt_func = format_prompt_func
+        self._llm = LLM(model=hf_model_name, max_num_batched_tokens=max_num_batched_tokens)
+
+    def _generate(
+        self, prompts: list, temperature: float, max_tokens=256, system_prompt=None
+    ) -> BatchGenerateResult:
+        from vllm import SamplingParams
+
+        if temperature == 0.0:
+            top_p = 1
+        else:
+            top_p = 0.95
+
+        all_formatted_prompts = [
+            self._format_prompt_func(message=message, system_prompt_opt=system_prompt)
+            for message in prompts
+        ]
+
+        sampling_params = SamplingParams(
+            temperature=temperature, top_p=top_p, max_tokens=max_tokens
+        )
+        outputs = self._llm.generate(all_formatted_prompts, sampling_params)
+
+        rows = []
+        for index, output in enumerate(outputs):
+            generated_text = output.outputs[0].text
+            row_generate_result = RowGenerateResult(
+                is_successful=True,
+                error_msg=None,
+                answer=generated_text,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                top_p=top_p,
+                prompts=all_formatted_prompts[index],
+            )
+            rows.append(row_generate_result)
+
+        return BatchGenerateResult(
+            num_rows=len(rows),
+            num_successful_rows=len(rows),
+            rows=rows,
+            is_successful=True,
+            error_msg=None,
+        )

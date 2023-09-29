@@ -78,3 +78,30 @@ def generate_and_evaluate(
 
     logger.info(f"Finished generating {len(result_df)} rows, starting evaluation")
     return evaluator.run_eval(dataset_df=result_df, concurrency=20, catch_error=True)
+
+
+def evaluate_using_vllm_locally(
+    input_df, hf_model_name, prompt_tempate_format_func, temperature=0, max_tokens=200
+):
+    from databricks.labs.doc_qa.model_generators.model_generator import (
+        vLllmLocalModelGenerator,
+    )
+    from databricks.labs.doc_qa.variables.doc_qa_template_variables import (
+        doc_qa_task_prompt_template,
+    )
+
+    model_generator = vLllmLocalModelGenerator(
+        hf_model_name=hf_model_name,
+        format_prompt_func=prompt_tempate_format_func,
+        prompt_formatter=doc_qa_task_prompt_template,
+    )
+
+    evaluator = gpt_4_evaluator()
+    generate_result = model_generator.run_tasks(
+        input_df=input_df, temperature=temperature, max_tokens=max_tokens
+    )
+
+    result_df = generate_result.to_dataframe()
+
+    logger.info(f"Finished generating {len(result_df)} rows, starting evaluation")
+    return evaluator.run_eval(dataset_df=result_df, concurrency=20, catch_error=True)
