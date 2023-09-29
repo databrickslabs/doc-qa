@@ -7,15 +7,11 @@ from databricks.labs.doc_qa.llm_utils import PromptTemplate
 from databricks.labs.doc_qa.llm_providers import openai_provider
 from databricks.labs.doc_qa.llm_providers import anthropic_provider
 import json
-import logging
+from databricks.labs.doc_qa.logging_utils import logger
 from tenacity import retry, stop_after_attempt, retry_if_result, retry_if_exception
 import re
 from enum import Enum
 import json
-
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__.split(".")[-1])
 
 
 class ParameterType(Enum):

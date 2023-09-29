@@ -3,23 +3,12 @@ import pandas as pd
 import os
 from databricks.labs.doc_qa.evaluators.templated_evaluator import (
     OpenAIEvaluator,
-    AnthropicEvaluator,
-    ParameterDef,
-    NoRetryPolicy,
     RetryPolicy,
-)
-from databricks.labs.doc_qa.variables.doc_qa_template_variables import (
-    anthropic_grading_template_scale_3,
-    anthropic_grading_template_scale_1,
 )
 from databricks.labs.doc_qa.variables.doc_qa_template_variables import (
     get_openai_grading_template_and_function,
 )
-
-# show debug log for all loggers
-import logging
-
-logging.basicConfig(level=logging.INFO)
+from databricks.labs.doc_qa.logging_utils import logger
 
 
 def gpt_4_evaluator():
@@ -28,7 +17,7 @@ def gpt_4_evaluator():
         openai_grading_prompt,
         openai_grading_function,
     ) = get_openai_grading_template_and_function(scale=10, level_of_details=2)
-    openai_gpt_4_evaluator = OpenAIEvaluator(
+    return OpenAIEvaluator(
         model="gpt-4",
         temperature=0.0,
         grading_prompt_tempate=openai_grading_prompt,
@@ -36,7 +25,6 @@ def gpt_4_evaluator():
         openai_function=openai_grading_function,
         retry_policy=retry_policy,
     )
-    return openai_gpt_4_evaluator
 
 
 def vllm_vicuna_model_generator(url, pat_token, model_name):
@@ -48,7 +36,7 @@ def vllm_vicuna_model_generator(url, pat_token, model_name):
         doc_qa_task_prompt_template,
     )
 
-    model_generator = vLllmOpenAICompletionFormatModelGenerator(
+    return vLllmOpenAICompletionFormatModelGenerator(
         url=url,
         pat_token=pat_token,
         prompt_formatter=doc_qa_task_prompt_template,
@@ -57,7 +45,6 @@ def vllm_vicuna_model_generator(url, pat_token, model_name):
         format_prompt_func=vicuna_format_prompt_func,
         concurrency=100,
     )
-    return model_generator
 
 
 def vllm_llama2_model_generator(url, pat_token, model_name):
@@ -69,7 +56,7 @@ def vllm_llama2_model_generator(url, pat_token, model_name):
         doc_qa_task_prompt_template,
     )
 
-    model_generator = vLllmOpenAICompletionFormatModelGenerator(
+    return vLllmOpenAICompletionFormatModelGenerator(
         url=url,
         pat_token=pat_token,
         prompt_formatter=doc_qa_task_prompt_template,
@@ -78,7 +65,6 @@ def vllm_llama2_model_generator(url, pat_token, model_name):
         format_prompt_func=llama2_format_prompt_func,
         concurrency=100,
     )
-    return model_generator
 
 
 def generate_and_evaluate(
@@ -90,8 +76,5 @@ def generate_and_evaluate(
 
     result_df = generate_result.to_dataframe()
 
-    logging.info(f"Finished generating {len(result_df)} rows, starting evaluation")
-    eval_result = evaluator.run_eval(
-        dataset_df=result_df, concurrency=20, catch_error=True
-    )
-    return eval_result
+    logger.info(f"Finished generating {len(result_df)} rows, starting evaluation")
+    return evaluator.run_eval(dataset_df=result_df, concurrency=20, catch_error=True)

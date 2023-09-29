@@ -3,10 +3,7 @@ import time
 import os
 import requests
 from tenacity import retry, stop_after_attempt, stop_after_delay, wait_fixed, retry_if_exception_type, retry_if_exception
-import logging 
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__.split(".")[-1])
+from databricks.labs.doc_qa.logging_utils import logger
 
 
 openai_token = os.getenv('OPENAI_API_KEY')

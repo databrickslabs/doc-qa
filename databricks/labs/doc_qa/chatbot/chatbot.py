@@ -2,11 +2,8 @@ from databricks.labs.doc_qa.llm_providers import openai_provider
 from databricks.labs.doc_qa.llm_utils import PromptTemplate
 import openai
 from databricks.labs.doc_qa.chatbot.retriever import Document, BaseRetriever
-import logging
+from databricks.labs.doc_qa.logging_utils import logger
 import tiktoken
-import dataclasses
-
-logger = logging.getLogger(__name__)
 
 class LlmProvider:
 
