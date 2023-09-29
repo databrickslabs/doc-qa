@@ -81,7 +81,12 @@ def generate_and_evaluate(
 
 
 def evaluate_using_vllm_locally(
-    input_df, hf_model_name, prompt_tempate_format_func, temperature=0, max_tokens=200
+    input_df,
+    hf_model_name,
+    prompt_tempate_format_func,
+    temperature=0,
+    max_tokens=200,
+    max_num_batched_tokens=None,
 ):
     from databricks.labs.doc_qa.model_generators.model_generator import (
         vLllmLocalModelGenerator,
@@ -94,6 +99,7 @@ def evaluate_using_vllm_locally(
         hf_model_name=hf_model_name,
         format_prompt_func=prompt_tempate_format_func,
         prompt_formatter=doc_qa_task_prompt_template,
+        max_num_batched_tokens=max_num_batched_tokens,
     )
 
     evaluator = gpt_4_evaluator()

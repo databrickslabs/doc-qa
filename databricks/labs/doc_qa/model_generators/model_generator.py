@@ -618,7 +618,7 @@ class vLllmLocalModelGenerator(BaseModelGenerator):
         prompt_formatter: PromptTemplate,
         batch_size: int = 100,
         concurrency: int = 1,
-        max_num_batched_tokens=4096,
+        max_num_batched_tokens=None,
     ) -> None:
         """
         Args:
@@ -635,7 +635,12 @@ class vLllmLocalModelGenerator(BaseModelGenerator):
             )
         self._hf_model_name = hf_model_name
         self._format_prompt_func = format_prompt_func
-        self._llm = LLM(model=hf_model_name, max_num_batched_tokens=max_num_batched_tokens)
+        if max_num_batched_tokens is None:
+            self._llm = LLM(model=hf_model_name)
+        else:
+            self._llm = LLM(
+                model=hf_model_name, max_num_batched_tokens=max_num_batched_tokens
+            )
 
     def _generate(
         self, prompts: list, temperature: float, max_tokens=256, system_prompt=None
