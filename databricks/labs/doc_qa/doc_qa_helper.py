@@ -32,7 +32,7 @@ def vllm_vicuna_model_generator(url, pat_token, model_name):
         vLllmOpenAICompletionFormatModelGenerator,
     )
     from databricks.labs.doc_qa.variables.doc_qa_template_variables import (
-        vicuna_format_prompt_func,
+        vicuna_prompt_format_func,
         doc_qa_task_prompt_template,
     )
 
@@ -42,7 +42,7 @@ def vllm_vicuna_model_generator(url, pat_token, model_name):
         prompt_formatter=doc_qa_task_prompt_template,
         batch_size=1,
         model_name=model_name,
-        format_prompt_func=vicuna_format_prompt_func,
+        format_prompt_func=vicuna_prompt_format_func,
         concurrency=100,
     )
 
@@ -52,7 +52,7 @@ def vllm_llama2_model_generator(url, pat_token, model_name):
         vLllmOpenAICompletionFormatModelGenerator,
     )
     from databricks.labs.doc_qa.variables.doc_qa_template_variables import (
-        llama2_format_prompt_func,
+        llama2_prompt_format_func,
         doc_qa_task_prompt_template,
     )
 
@@ -62,7 +62,7 @@ def vllm_llama2_model_generator(url, pat_token, model_name):
         prompt_formatter=doc_qa_task_prompt_template,
         batch_size=1,
         model_name=model_name,
-        format_prompt_func=llama2_format_prompt_func,
+        format_prompt_func=llama2_prompt_format_func,
         concurrency=100,
     )
 

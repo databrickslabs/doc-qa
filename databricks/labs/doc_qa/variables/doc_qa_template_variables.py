@@ -690,7 +690,7 @@ Provided context:
 )
 
 
-def vicuna_format_prompt_func(message: str, system_prompt_opt: str) -> str:
+def vicuna_prompt_format_func(message: str, system_prompt_opt: str) -> str:
     if system_prompt_opt is not None:
         return f"""{system_prompt_opt}
 
@@ -704,7 +704,8 @@ def vicuna_format_prompt_func(message: str, system_prompt_opt: str) -> str:
         ASSISTANT:
         """
 
-def llama2_format_prompt_func(message: str, system_prompt_opt: str) -> str:
+
+def llama2_prompt_format_func(message: str, system_prompt_opt: str) -> str:
     if system_prompt_opt is not None:
         texts = [f"[INST] <<SYS>>\n{system_prompt_opt}\n<</SYS>>\n\n"]
         texts.append(f"{message.strip()} [/INST]")
@@ -713,6 +714,34 @@ def llama2_format_prompt_func(message: str, system_prompt_opt: str) -> str:
         texts = [f"[INST] \n\n"]
         texts.append(f"{message.strip()} [/INST]")
         return "".join(texts)
+
+
+def llama2_prompt_format_func_without_sys(message: str, system_prompt_opt: str) -> str:
+    texts = [f"[INST] \n\n"]
+    texts.append(f"{message.strip()} [/INST]")
+    return "".join(texts)
+
+
+def open_assistant_prompt_format_func(message: str, system_prompt_opt: str) -> str:
+    if system_prompt_opt is not None:
+        return f"""{system_prompt_opt}
+
+        USER: {message}
+        ASSISTANT:
+        """
+    else:
+        return f"""A chat between a curious user and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the user's questions.
+
+        USER: {message}
+        ASSISTANT:
+        """
+
+
+def raw_prompt_format_func(message: str, system_prompt_opt: str) -> str:
+    if system_prompt_opt is not None:
+        return f"""{system_prompt_opt}\n\n {message.strip()}"""
+    else:
+        return message
 
 
 doc_qa_task_prompt_template = PromptTemplate(
