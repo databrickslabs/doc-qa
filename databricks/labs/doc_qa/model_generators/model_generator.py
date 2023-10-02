@@ -641,6 +641,7 @@ class vLllmLocalModelGenerator(BaseModelGenerator):
             self._llm = LLM(
                 model=hf_model_name, max_num_batched_tokens=max_num_batched_tokens
             )
+        logger.info(f"Initialized vLllmLocalModelGenerator with model {hf_model_name}")
 
     def _generate(
         self, prompts: list, temperature: float, max_tokens=256, system_prompt=None
