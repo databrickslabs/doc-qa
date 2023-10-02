@@ -13,9 +13,9 @@ class LlmProvider:
 
 class OpenAILlmProvider(LlmProvider):
 
-    def __init__(self, api_key: str, model, temperature, **kwargs):
+    def __init__(self, api_key: str, model_name: str, temperature, **kwargs):
         self._api_key = api_key
-        self._model = model
+        self.model_name = model_name
         self._temperature = temperature
         openai.api_key = api_key
     
@@ -48,7 +48,7 @@ class BaseChatBot:
         self._whole_prompt_template = whole_prompt_template
         self._document_prompt_tempate = document_prompt_tempate
         self._max_num_tokens_for_context = max_num_tokens_for_context
-        self._enc = tiktoken.encoding_for_model(self._llm_provider._model)
+        self._enc = tiktoken.encoding_for_model(self._llm_provider.model_name)
 
     def chat(self, prompt: str, top_k=1, **kwargs) -> ChatResponse:
         """
