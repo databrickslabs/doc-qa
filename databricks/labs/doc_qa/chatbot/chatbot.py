@@ -26,7 +26,7 @@ class OpenAILlmProvider(LlmProvider):
                 "content": prompt
             }
         ]
-        response_message = openai_provider.request_openai(messages=messages, functions=[], model=self._model, temperature=self._temperature)
+        response_message = openai_provider.request_openai(messages=messages, functions=[], model=self.model_name, temperature=self._temperature)
         return response_message['content']
 
 class ChatResponse:
