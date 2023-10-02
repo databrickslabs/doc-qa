@@ -1,14 +1,12 @@
 from datetime import datetime
 import pandas as pd
 from databricks.labs.doc_qa.llm_utils import PromptTemplate
+from databricks.labs.doc_qa.logging_utils import logger
 import openai
-import logging
 import faiss
 import numpy as np
 import json
 
-
-logger = logging.getLogger(__name__)
 
 
 class EmbeddingProvider:

@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name='doc-qa',
-    version='0.0.3',
+    version='0.0.4',
     author='Quinn Leng',
     author_email='quinn.leng@databricks.com',
     description='Question-Answering Evaluation Tool based on Databricks documentation',

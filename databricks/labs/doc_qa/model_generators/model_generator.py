@@ -6,7 +6,8 @@ import concurrent.futures
 
 logging.basicConfig(level=logging.INFO)
 # Instead of using full name, only use the module name
-logger = logging.getLogger(__name__.split(".")[0])
+logger = logging.getLogger(__name__.split(".")[-1])
+
 
 class RowGenerateResult:
     """
@@ -231,7 +232,7 @@ class OpenAiModelGenerator(BaseModelGenerator):
         row_generate_result = RowGenerateResult(
             is_successful=True,
             error_msg=None,
-            content=content,
+            answer=content,
             temperature=temperature,
             max_tokens=max_tokens,
             model_name=self._model_name,
@@ -450,6 +451,7 @@ class DriverProxyModelGenerator(BaseModelGenerator):
         self,
         url: str,
         pat_token: str,
+        format_prompt_func: callable,
         prompt_formatter: PromptTemplate,
         batch_size: int = 32,
         concurrency: int = 1,
@@ -466,16 +468,7 @@ class DriverProxyModelGenerator(BaseModelGenerator):
         super().__init__(prompt_formatter, batch_size, concurrency)
         self._url = url
         self._pat_token = pat_token
-
-    def _format_prompt(self, message: str, system_prompt_opt: str) -> str:
-        if system_prompt_opt is not None:
-            texts = [f"[INST] <<SYS>>\n{system_prompt_opt}\n<</SYS>>\n\n"]
-            texts.append(f"{message.strip()} [/INST]")
-            return "".join(texts)
-        else:
-            texts = [f"[INST] \n\n"]
-            texts.append(f"{message.strip()} [/INST]")
-            return "".join(texts)
+        self._format_prompt_func = format_prompt_func
 
     def _generate(
         self, prompts: list, temperature: float, max_tokens=256, system_prompt=None
@@ -483,7 +476,7 @@ class DriverProxyModelGenerator(BaseModelGenerator):
         top_p = 0.95
 
         all_formatted_prompts = [
-            self._format_prompt(message=message, system_prompt_opt=system_prompt)
+            self._format_prompt_func(message=message, system_prompt_opt=system_prompt)
             for message in prompts
         ]
 
@@ -511,6 +504,172 @@ class DriverProxyModelGenerator(BaseModelGenerator):
                 is_successful=True,
                 error_msg=None,
                 answer=response_content,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                top_p=top_p,
+                prompts=all_formatted_prompts[index],
+            )
+            rows.append(row_generate_result)
+
+        return BatchGenerateResult(
+            num_rows=len(rows),
+            num_successful_rows=len(rows),
+            rows=rows,
+            is_successful=True,
+            error_msg=None,
+        )
+
+
+# The model generator based on the openAI format implemented by the vLLM framework:
+# Reference: https://vllm.readthedocs.io/en/latest/getting_started/quickstart.html#openai-compatible-server
+class vLllmOpenAICompletionFormatModelGenerator(BaseModelGenerator):
+    def __init__(
+        self,
+        model_name,
+        url: str,
+        pat_token: str,
+        format_prompt_func: callable,
+        prompt_formatter: PromptTemplate,
+        batch_size: int = 1,
+        concurrency: int = 64,
+    ) -> None:
+        """
+        Args:
+            prompt_formatter (PromptTemplate): the prompt format to format the input dataframe into prompts row by row according to the column names
+            model_name (str): the model name
+            batch_size (int, optional): Batch size that will be used to run tasks. Defaults to 1, which means it's sequential.
+        """
+        super().__init__(prompt_formatter, batch_size, concurrency)
+        # check the batch_size can only be 1 for this model generator
+        if batch_size != 1:
+            raise ValueError(
+                f"batch_size {batch_size} is not supported for {self.__class__.__name__}, only 1 is supported"
+            )
+        self._model_name = model_name
+        self._url = url
+        self._pat_token = pat_token
+        self._format_prompt_func = format_prompt_func
+
+    def _generate(
+        self, prompts: list, temperature: float, max_tokens=256, system_prompt=None
+    ) -> BatchGenerateResult:
+        if temperature == 0.0:
+            top_p = 1
+        else:
+            top_p = 0.95
+
+        all_formatted_prompts = [
+            self._format_prompt_func(message=message, system_prompt_opt=system_prompt)
+            for message in prompts
+        ]
+
+        import requests
+        import json
+
+        headers = {
+            "Authentication": f"Bearer {self._pat_token}",
+            "Content-Type": "application/json",
+        }
+
+        data = {
+            "model": self._model_name,
+            "prompt": all_formatted_prompts[0],
+            "temperature": temperature,
+            "max_tokens": max_tokens,
+            "top_p": top_p,
+        }
+
+        response = requests.post(self._url, headers=headers, data=json.dumps(data))
+
+        # Extract the "outputs" as a JSON array from the response
+        if "choices" not in response.json():
+            logging.error(
+                f"Error while generating output, status code {response.status_code}, text: {response.text}"
+            )
+        choices = response.json()["choices"]
+        rows = []
+        for index, choice in enumerate(choices):
+            response_content = choice["text"]
+            row_generate_result = RowGenerateResult(
+                is_successful=True,
+                error_msg=None,
+                answer=response_content,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                top_p=top_p,
+                prompts=all_formatted_prompts[index],
+            )
+            rows.append(row_generate_result)
+
+        return BatchGenerateResult(
+            num_rows=len(rows),
+            num_successful_rows=len(rows),
+            rows=rows,
+            is_successful=True,
+            error_msg=None,
+        )
+
+
+class vLllmLocalModelGenerator(BaseModelGenerator):
+    def __init__(
+        self,
+        hf_model_name,
+        format_prompt_func: callable,
+        prompt_formatter: PromptTemplate,
+        batch_size: int = 100,
+        concurrency: int = 1,
+        max_num_batched_tokens=None,
+    ) -> None:
+        """
+        Args:
+            prompt_formatter (PromptTemplate): the prompt format to format the input dataframe into prompts row by row according to the column names
+            model_name (str): the huggingface model name
+        """
+        super().__init__(prompt_formatter, batch_size, concurrency)
+        from vllm import LLM
+
+        # check the batch_size can only be 1 for this model generator
+        if concurrency != 1:
+            raise ValueError(
+                f"concurrency {concurrency} is not supported for {self.__class__.__name__}, only 1 is supported"
+            )
+        self._hf_model_name = hf_model_name
+        self._format_prompt_func = format_prompt_func
+        if max_num_batched_tokens is None:
+            self._llm = LLM(model=hf_model_name)
+        else:
+            self._llm = LLM(
+                model=hf_model_name, max_num_batched_tokens=max_num_batched_tokens
+            )
+        logger.info(f"Initialized vLllmLocalModelGenerator with model {hf_model_name}")
+
+    def _generate(
+        self, prompts: list, temperature: float, max_tokens=256, system_prompt=None
+    ) -> BatchGenerateResult:
+        from vllm import SamplingParams
+
+        if temperature == 0.0:
+            top_p = 1
+        else:
+            top_p = 0.95
+
+        all_formatted_prompts = [
+            self._format_prompt_func(message=message, system_prompt_opt=system_prompt)
+            for message in prompts
+        ]
+
+        sampling_params = SamplingParams(
+            temperature=temperature, top_p=top_p, max_tokens=max_tokens
+        )
+        outputs = self._llm.generate(all_formatted_prompts, sampling_params)
+
+        rows = []
+        for index, output in enumerate(outputs):
+            generated_text = output.outputs[0].text
+            row_generate_result = RowGenerateResult(
+                is_successful=True,
+                error_msg=None,
+                answer=generated_text,
                 temperature=temperature,
                 max_tokens=max_tokens,
                 top_p=top_p,

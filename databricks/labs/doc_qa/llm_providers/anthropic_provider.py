@@ -3,8 +3,9 @@ import time
 import os
 import requests
 from tenacity import retry, stop_after_attempt, stop_after_delay, wait_fixed, retry_if_exception_type, retry_if_exception
-import logging 
+from databricks.labs.doc_qa.logging_utils import logger
 from anthropic import Anthropic, HUMAN_PROMPT, AI_PROMPT
+import logging
 
 anthropic_api_key = os.getenv('ANTHROPIC_API_KEY')
 
@@ -16,7 +17,6 @@ def supress_httpx_logs():
     logger.setLevel(logging.WARNING)
 
 supress_httpx_logs()
-logger = logging.getLogger(__name__)
 
 
 def request_anthropic(prompt, temperature=0.0, model="claude-2", max_tokens_to_sample=300):
