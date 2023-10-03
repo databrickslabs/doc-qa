@@ -303,13 +303,13 @@ class OpenAIEvaluator(BaseLlmEvaluator):
         openai_function: dict = None,
         system_prompt_template: PromptTemplate = None,
         retry_policy: RetryPolicy = DefaultRetryPolicy(),
-        openai_request_timeout: int = 1200,
+        openai_retry_timeout: int = 1200,
     ):
         if model not in self.ALLOWED_MODEL_NAMES:
             raise ValueError(
                 f"Unsupported model {model} provided. Only gpt-4 and gpt-3.5-turbo-16k are supported."
             )
-        self._openai_request_timeout = openai_request_timeout
+        self._openai_retry_timeout = openai_retry_timeout
         super().__init__(
             model=model,
             temperature=temperature,
@@ -343,7 +343,7 @@ class OpenAIEvaluator(BaseLlmEvaluator):
             functions=functions,
             model=self.model,
             temperature=self.temperature,
-            request_timeout=self._openai_request_timeout,
+            retry_timeout=self._openai_retry_timeout,
         )
         if "function_call" in response_message:
             function_call_obj = response_message["function_call"]
