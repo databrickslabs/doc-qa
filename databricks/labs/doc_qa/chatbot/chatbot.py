@@ -4,6 +4,7 @@ import openai
 from databricks.labs.doc_qa.chatbot.retriever import Document, BaseRetriever
 from databricks.labs.doc_qa.logging_utils import logger
 import tiktoken
+from concurrent.futures import ThreadPoolExecutor
 
 
 class LlmProvider:
@@ -56,6 +57,16 @@ class BaseChatBot:
         self._document_prompt_tempate = document_prompt_tempate
         self._max_num_tokens_for_context = max_num_tokens_for_context
         self._enc = tiktoken.encoding_for_model(self._llm_provider.model_name)
+
+    def chat_batch(
+        queries: list[str], top_k=1, concurrency: int = 20, **kwargs
+    ) -> list[ChatResponse]:
+        with ThreadPoolExecutor(max_workers=concurrency) as executor:
+            results = executor.map(
+                lambda query: self.chat(query=query, top_k=top_k, **kwargs),
+                queries,
+            )
+            return list(results)
 
     def chat(self, query: str, top_k=1, **kwargs) -> ChatResponse:
         """
