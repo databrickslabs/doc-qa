@@ -59,7 +59,7 @@ class BaseChatBot:
         self._enc = tiktoken.encoding_for_model(self._llm_provider.model_name)
 
     def chat_batch(
-        queries: list[str], top_k=1, concurrency: int = 20, **kwargs
+        self, queries: list[str], top_k=1, concurrency: int = 20, **kwargs
     ) -> list[ChatResponse]:
         with ThreadPoolExecutor(max_workers=concurrency) as executor:
             results = executor.map(
