@@ -34,7 +34,8 @@ class ChatResponse:
     content: str
     relevant_documents: list[Document]
 
-    def __init__(self, content: str, relevant_documents: list[Document]):
+    def __init__(self, query: str, content: str, relevant_documents: list[Document]):
+        self.query = query
         self.content = content
         self.relevant_documents = relevant_documents
 
