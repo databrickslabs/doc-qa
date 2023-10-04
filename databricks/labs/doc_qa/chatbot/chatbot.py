@@ -3,8 +3,10 @@ from databricks.labs.doc_qa.llm_utils import PromptTemplate
 import openai
 from databricks.labs.doc_qa.chatbot.retriever import Document, BaseRetriever
 from databricks.labs.doc_qa.logging_utils import logger
+from typing import List
 import tiktoken
 from concurrent.futures import ThreadPoolExecutor
+import json
 
 
 class LlmProvider:
@@ -33,9 +35,9 @@ class OpenAILlmProvider(LlmProvider):
 class ChatResponse:
     query: str
     content: str
-    relevant_documents: list[Document]
+    relevant_documents: List[Document]
 
-    def __init__(self, query: str, content: str, relevant_documents: list[Document]):
+    def __init__(self, query: str, content: str, relevant_documents: List[Document]):
         self.query = query
         self.content = content
         self.relevant_documents = relevant_documents
