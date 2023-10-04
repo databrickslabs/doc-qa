@@ -115,7 +115,6 @@ class TopDocRelevanceChatbot(BaseChatbot):
         self,
         llm_provider: str,
         retriever: BaseRetriever,
-        openai_provider,
         whole_prompt_template: PromptTemplate,
         document_prompt_tempate: PromptTemplate,
         max_num_tokens_for_context: int = 3500,
@@ -129,7 +128,6 @@ class TopDocRelevanceChatbot(BaseChatbot):
             max_num_tokens_for_context=max_num_tokens_for_context,
             **kwargs,
         )
-        self._openai_provider = openai_provider
 
     def get_doc_relevance_score(self, query: str, document: Document) -> float:
         prompt = f"""You are a helpful assistant good at rating the relevance of the document to a given question based on a set of requirements. 
@@ -173,7 +171,7 @@ class TopDocRelevanceChatbot(BaseChatbot):
             },
         }
 
-        response = self._openai_provider.request_openai(
+        response = openai_provider.request_openai(
             messages=messages,
             model="gpt-3.5-turbo",
             functions=[submit_function],
