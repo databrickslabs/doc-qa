@@ -110,7 +110,7 @@ class BaseChatBot:
         )
 
 
-class TopDocRelevanceChatbot(BaseChatbot):
+class TopDocRelevanceChatbot(BaseChatBot):
     def __init__(
         self,
         llm_provider: str,
@@ -141,7 +141,7 @@ class TopDocRelevanceChatbot(BaseChatbot):
     
     Below is the question:
 
-    {question}
+    {query}
 
     Below is the document:
 
