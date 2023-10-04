@@ -61,8 +61,8 @@ class BaseChatBot:
         self._enc = tiktoken.encoding_for_model(self._llm_provider.model_name)
 
     def chat_batch(
-        self, queries: list[str], top_k=1, concurrency: int = 20, **kwargs
-    ) -> list[ChatResponse]:
+        self, queries: List[str], top_k=1, concurrency: int = 20, **kwargs
+    ) -> List[ChatResponse]:
         logger.info(
             f"Start chatting with {len(queries)} queries using concurrency {concurrency} and top_k {top_k}"
         )
@@ -71,7 +71,7 @@ class BaseChatBot:
                 lambda query: self.chat(query=query, top_k=top_k, **kwargs),
                 queries,
             )
-            return list(results)
+            return List(results)
 
     def chat(self, query: str, top_k=1, **kwargs) -> ChatResponse:
         """
