@@ -17,7 +17,7 @@ def gpt_4_evaluator():
         model="gpt-4",
         temperature=0.0,
         grading_prompt_tempate=grading_prompt_template,
-        input_columns=["question", "answer", "context"],
+        input_columns=["question", "answer", "context", "source"],
         openai_function=openai_evaluator_function,
         retry_policy=retry_policy,
         openai_retry_timeout=15,
