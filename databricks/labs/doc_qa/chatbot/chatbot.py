@@ -71,7 +71,7 @@ class BaseChatBot:
                 lambda query: self.chat(query=query, top_k=top_k, **kwargs),
                 queries,
             )
-            return List(results)
+            return list(results)
 
     def chat(self, query: str, top_k=1, **kwargs) -> ChatResponse:
         """
