@@ -55,4 +55,7 @@ def benchmark_retrieval(reference_df, retriever, top_k=5):
         if i in ranks and ranks[i] and ranks[i] > 0:
             hit_so_far += ranks[i]
         precisions.append(hit_so_far / total_count)
-    return precisions
+
+    precisions_df = pd.DataFrame(precisions, columns=["precision"])
+    precisions_df["rank"] = precisions_df.index + 1
+    return precisions_df
