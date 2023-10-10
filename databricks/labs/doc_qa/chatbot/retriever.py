@@ -27,31 +27,35 @@ class OpenAIEmbeddingProvider(EmbeddingProvider):
     An OpenAIEmbeddingProvider object contains the input data for the evaluation dataframe.
     """
 
-    def __init__(self, api_key: str, batch_size: int = 500):
+    def __init__(
+        self,
+        api_key: str,
+        batch_size: int = 500,
+        model_name: str = "text-embedding-ada-002",
+    ):
         self._api_key = api_key
         openai.api_key = api_key
         self.batch_size = batch_size
+        self.model_name = model_name
 
     def embed_text(self, text, is_query=True):
         """
         Embed the query using the embedding provider.
         """
-        response = openai.Embedding.create(input=text, model="text-embedding-ada-002")
+        response = openai.Embedding.create(input=text, model=self.model_name)
         return response["data"][0]["embedding"]
 
     def embed_texts(self, texts, is_query=True):
         """
         Embed the queries using the embedding provider.
         """
-        if len(queries) == 0:
+        if len(texts) == 0:
             return []
         BATCH_SIZE = self.batch_size
         embeddings = []
         for i in range(0, len(texts), BATCH_SIZE):
             batch = texts[i : i + BATCH_SIZE]
-            response = openai.Embedding.create(
-                input=batch, model="text-embedding-ada-002"
-            )
+            response = openai.Embedding.create(input=batch, model=self.model_name)
             embeddings.extend([item["embedding"] for item in response["data"]])
         return embeddings
 
@@ -65,7 +69,7 @@ class BgeEmbeddingProvider(EmbeddingProvider):
         self,
         model_name: str = "BAAI/bge-large-en-v1.5",
         query_instruction="Represent this sentence for searching relevant passages:",
-        batch_size: int = 50,
+        batch_size: int = 100,
     ):
         from transformers import AutoTokenizer, AutoModel
         import torch
@@ -245,6 +249,19 @@ class CsvRetriever(BaseRetriever):
     ):
         # Load the csv as a pandas dataframe
         df = pd.read_csv(csv_path)
+        return cls.index_from_dataframe(
+            df=df,
+            embed_prompt_template=embed_prompt_template,
+            embedding_provider=embedding_provider,
+        )
+
+    @classmethod
+    def index_from_dataframe(
+        cls,
+        df: pd.DataFrame,
+        embed_prompt_template: PromptTemplate,
+        embedding_provider: EmbeddingProvider,
+    ):
         additional_column_names = [
             column_name
             for column_name in df.columns
@@ -265,7 +282,7 @@ class CsvRetriever(BaseRetriever):
             )
             documents.append(document)
             queries.append(query)
-        logger.info(f"Loaded {len(documents)} documents from {csv_path}")
+        logger.info(f"Loaded {len(documents)} documents")
         embeddings = embedding_provider.embed_texts(texts=queries, is_query=False)
         for document, embedding in zip(documents, embeddings):
             document.vector = embedding
