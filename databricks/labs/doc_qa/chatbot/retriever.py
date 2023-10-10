@@ -87,7 +87,7 @@ class BgeEmbeddingProvider(EmbeddingProvider):
         if len(texts) == 0:
             return []
         if is_query:
-            texts = [self.query_instruction + query for query in queries]
+            texts = [self.query_instruction + text for text in texts]
 
         BATCH_SIZE = 50
         total_embeddings = []
