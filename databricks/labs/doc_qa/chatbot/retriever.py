@@ -65,6 +65,8 @@ class BgeEmbeddingProvider(EmbeddingProvider):
         model_name: str = "BAAI/bge-large-en-v1.5",
         query_instruction="Represent this sentence for searching relevant passages:",
     ):
+        from transformers import AutoTokenizer, AutoModel
+
         self._model_name = model_name
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         self.model = AutoModel.from_pretrained(model_name)
@@ -80,6 +82,8 @@ class BgeEmbeddingProvider(EmbeddingProvider):
         """
         Embed the queries using the embedding provider.
         """
+        import torch
+
         if len(texts) == 0:
             return []
         if is_query:
@@ -92,13 +96,13 @@ class BgeEmbeddingProvider(EmbeddingProvider):
             input_texts = texts[i : i + BATCH_SIZE]
 
             # Tokenize sentences
-            self.encoded_input = tokenizer(
+            encoded_input = self.tokenizer(
                 input_texts, padding=True, truncation=True, return_tensors="pt"
             )
 
             # Compute token embeddings
             with torch.no_grad():
-                model_output = model(**encoded_input)
+                model_output = self.model(**encoded_input)
                 # Perform pooling. In this case, cls pooling.
                 sentence_embeddings = model_output[0][:, 0]
             # normalize embeddings
