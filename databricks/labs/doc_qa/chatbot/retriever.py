@@ -27,9 +27,10 @@ class OpenAIEmbeddingProvider(EmbeddingProvider):
     An OpenAIEmbeddingProvider object contains the input data for the evaluation dataframe.
     """
 
-    def __init__(self, api_key: str):
+    def __init__(self, api_key: str, batch_size: int = 500):
         self._api_key = api_key
         openai.api_key = api_key
+        self.batch_size = batch_size
 
     def embed_text(self, text, is_query=True):
         """
@@ -44,7 +45,7 @@ class OpenAIEmbeddingProvider(EmbeddingProvider):
         """
         if len(queries) == 0:
             return []
-        BATCH_SIZE = 500
+        BATCH_SIZE = self.batch_size
         embeddings = []
         for i in range(0, len(texts), BATCH_SIZE):
             batch = texts[i : i + BATCH_SIZE]
@@ -64,13 +65,18 @@ class BgeEmbeddingProvider(EmbeddingProvider):
         self,
         model_name: str = "BAAI/bge-large-en-v1.5",
         query_instruction="Represent this sentence for searching relevant passages:",
+        batch_size: int = 50,
     ):
         from transformers import AutoTokenizer, AutoModel
+        import torch
 
         self._model_name = model_name
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         self.model = AutoModel.from_pretrained(model_name)
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.model.to(self.device)
         self.query_instruction = query_instruction
+        self.batch_size = batch_size
 
     def embed_text(self, text, is_query=True):
         """
@@ -89,7 +95,7 @@ class BgeEmbeddingProvider(EmbeddingProvider):
         if is_query:
             texts = [self.query_instruction + text for text in texts]
 
-        BATCH_SIZE = 50
+        BATCH_SIZE = self.batch_size
         total_embeddings = []
         for i in range(0, len(texts), BATCH_SIZE):
             # Tokenize the input texts
@@ -99,6 +105,10 @@ class BgeEmbeddingProvider(EmbeddingProvider):
             encoded_input = self.tokenizer(
                 input_texts, padding=True, truncation=True, return_tensors="pt"
             )
+
+            # Move the data to the device.
+            for key, value in encoded_input.items():
+                encoded_input[key] = value.to(self.device)
 
             # Compute token embeddings
             with torch.no_grad():
