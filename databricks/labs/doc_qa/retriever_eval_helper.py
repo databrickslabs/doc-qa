@@ -7,6 +7,8 @@ from databricks.labs.doc_qa.llm_utils import PromptTemplate
 from databricks.labs.doc_qa.chatbot.retriever import (
     EmbeddingProvider,
     CsvRetriever,
+    GTEEmbeddingProvider,
+    InstructorEmbeddingProvider,
     BgeEmbeddingProvider,
     OpenAIEmbeddingProvider,
 )
@@ -127,6 +129,57 @@ def split_and_benchmark_bge(
         top_k=top_k,
     )
 
+def split_and_benchmark_gte(
+    ground_truth_df: pd.DataFrame,
+    datasource_df: pd.DataFrame,
+    model_name: str = "thenlper/gte-large",
+    text_column_name="full_text",
+    max_sequence_length=512,
+    top_k=20,
+    batch_size=500,
+):
+    embedding_provider = GTEEmbeddingProvider(
+        model_name=model_name, batch_size=batch_size
+    )
+    from transformers import AutoTokenizer, AutoModel
+
+    # Load model from HuggingFace Hub
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    return split_chunk_and_benchmark(
+        ground_truth_df=ground_truth_df,
+        datasource_df=datasource_df,
+        tokenizer=tokenizer,
+        embedding_provider=embedding_provider,
+        text_column_name=text_column_name,
+        max_sequence_length=max_sequence_length,
+        top_k=top_k,
+    )
+
+def split_and_benchmark_instructor(
+    ground_truth_df: pd.DataFrame,
+    datasource_df: pd.DataFrame,
+    model_name: str = "hkunlp/instructor-xl",
+    text_column_name="full_text",
+    max_sequence_length=512,
+    top_k=20,
+    batch_size=500,
+):
+    embedding_provider = InstructorEmbeddingProvider(
+        model_name=model_name, batch_size=batch_size
+    )
+    from transformers import AutoTokenizer, AutoModel
+
+    # Load model from HuggingFace Hub
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    return split_chunk_and_benchmark(
+        ground_truth_df=ground_truth_df,
+        datasource_df=datasource_df,
+        tokenizer=tokenizer,
+        embedding_provider=embedding_provider,
+        text_column_name=text_column_name,
+        max_sequence_length=max_sequence_length,
+        top_k=top_k,
+    )
 
 def split_and_benchmark_openai(
     ground_truth_df: pd.DataFrame,
