@@ -6,6 +6,7 @@ import openai
 import faiss
 import numpy as np
 import json
+import logging
 
 
 class EmbeddingProvider:
@@ -30,7 +31,7 @@ class OpenAIEmbeddingProvider(EmbeddingProvider):
     def __init__(
         self,
         api_key: str,
-        batch_size: int = 500,
+        batch_size: int = 1000,
         model_name: str = "text-embedding-ada-002",
     ):
         self._api_key = api_key
@@ -97,7 +98,10 @@ class BgeEmbeddingProvider(EmbeddingProvider):
         if len(texts) == 0:
             return []
         if is_query:
+            logging.info(f"Embedding {len(texts)} queries as query")
             texts = [self.query_instruction + text for text in texts]
+        else:
+            logging.info(f"Embedding {len(texts)} queries as passage")
 
         BATCH_SIZE = self.batch_size
         total_embeddings = []

@@ -85,6 +85,7 @@ def split_chunk_and_benchmark(
         max_sequence_length=max_sequence_length,
         concurrency=500,
     )
+    logging.info(f"Split {len(datasource_df)} rows into {len(df_chunks)} chunks")
 
     embed_prompt = PromptTemplate("""{chunk}""")
 
@@ -94,7 +95,7 @@ def split_chunk_and_benchmark(
         embedding_provider=embedding_provider,
         embed_prompt_template=embed_prompt,
     )
-
+    logging.info(f"Created vector store with {csv_retriever.num_docs} documents")
     precisions = benchmark_retrieval(ground_truth_df, csv_retriever, top_k=top_k)
 
     return precisions, csv_retriever
@@ -107,8 +108,11 @@ def split_and_benchmark_bge(
     text_column_name="full_text",
     max_sequence_length=512,
     top_k=20,
+    batch_size=500,
 ):
-    embedding_provider = BgeEmbeddingProvider(model_name=model_name, batch_size=500)
+    embedding_provider = BgeEmbeddingProvider(
+        model_name=model_name, batch_size=batch_size
+    )
     from transformers import AutoTokenizer, AutoModel
 
     # Load model from HuggingFace Hub
@@ -132,8 +136,11 @@ def split_and_benchmark_openai(
     text_column_name="full_text",
     max_sequence_length=8191,
     top_k=20,
+    batch_size=1000,
 ):
-    embedding_provider = OpenAIEmbeddingProvider(model_name=model_name, api_key=api_key)
+    embedding_provider = OpenAIEmbeddingProvider(
+        model_name=model_name, api_key=api_key, batch_size=batch_size
+    )
     tokenizer = tiktoken.encoding_for_model(model_name)
     return split_chunk_and_benchmark(
         ground_truth_df=ground_truth_df,
