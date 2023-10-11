@@ -11,7 +11,7 @@ Below is your grading rubric:
 - context_relevance: If the provided context is relevant to the question, below are the details of the different scores:
 - Score 0: the context is completely irrelevant to the question
 - Score 1: the context is partially relevant to the question, but is missing one or two critical pieces of information
-- Score 2: the context is relevant to the question, and doesn't miss any critical pieces of information
+- Score 2: the context can be used to answer the question, and doesn't miss any critical pieces of information
 - correctness: how correct is the answer in regard to the question, below are the details of the different scores:
 - Score 0: the answer is completely incorrect, e.g. the answer is about a different question, or the answer doesn't mention anything about the question or the answer doesn't make sense at all
 - Score 1: if the answer only partially answer the question, e.g. the answer only answer one aspect of the question or is missing one or two critical pieces of information
@@ -20,12 +20,16 @@ Below is your grading rubric:
 Requirements:
 - If the context is "empty" or empty string, then the context_relevance score should be 0
 - If the answer is "empty" or empty string, then the correctness score should be 0
+- The source link might be helpful to judge the context_relevance since that tells you where the context is from
 
 Provided question:
 {question}
 
 Provided answer: 
 {answer}
+
+The source link where the context is from: 
+{source}
 
 Provided context: 
 {context}
