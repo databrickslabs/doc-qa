@@ -100,6 +100,7 @@ def evaluate_using_vllm_locally(
         format_prompt_func=prompt_tempate_format_func,
         prompt_formatter=doc_qa_task_prompt_template,
         max_num_batched_tokens=max_num_batched_tokens,
+        trust_remote_code=True,
     )
 
     evaluator = gpt_4_evaluator()
