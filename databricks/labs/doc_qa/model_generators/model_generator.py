@@ -619,6 +619,7 @@ class vLllmLocalModelGenerator(BaseModelGenerator):
         batch_size: int = 100,
         concurrency: int = 1,
         max_num_batched_tokens=None,
+        trust_remote_code=True,
     ) -> None:
         """
         Args:
@@ -639,7 +640,9 @@ class vLllmLocalModelGenerator(BaseModelGenerator):
             self._llm = LLM(model=hf_model_name)
         else:
             self._llm = LLM(
-                model=hf_model_name, max_num_batched_tokens=max_num_batched_tokens
+                model=hf_model_name,
+                max_num_batched_tokens=max_num_batched_tokens,
+                trust_remote_code=trust_remote_code,
             )
         logger.info(f"Initialized vLllmLocalModelGenerator with model {hf_model_name}")
 
