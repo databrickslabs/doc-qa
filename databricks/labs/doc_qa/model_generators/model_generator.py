@@ -637,7 +637,10 @@ class vLllmLocalModelGenerator(BaseModelGenerator):
         self._hf_model_name = hf_model_name
         self._format_prompt_func = format_prompt_func
         if max_num_batched_tokens is None:
-            self._llm = LLM(model=hf_model_name)
+            self._llm = LLM(
+                model=hf_model_name,
+                trust_remote_code=trust_remote_code,
+            )
         else:
             self._llm = LLM(
                 model=hf_model_name,
