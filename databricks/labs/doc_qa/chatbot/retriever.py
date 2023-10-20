@@ -66,12 +66,11 @@ class InstructorEmbeddingProvider(EmbeddingProvider):
     An embedding provider for InstructorXL
     """
     def __init__(self, model_name: str = "hkunlp/instructor-xl", batch_size: int = 100, query_instruction: str = "Represent the question for retrieving supporting documents:", passage_instruction: str = "Represent the document for retrieval"):
-        from transformers import AutoTokenizer, AutoModel
+        from InstructorEmbedding import INSTRUCTOR
         import torch
 
         self._model_name = model_name
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-        self.model = AutoModel.from_pretrained(model_name)
+        self.model = INSTRUCTOR(model_name)
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model.to(self.device)
         self.batch_size = batch_size
@@ -103,22 +102,11 @@ class InstructorEmbeddingProvider(EmbeddingProvider):
         total_embeddings = []
         for i in range(0, len(texts), BATCH_SIZE):
             # Tokenize the input texts
-            input_texts = texts[i : i + BATCH_SIZE]
-
-            # Tokenize sentences
-            encoded_input = self.tokenizer(
-                input_texts, padding=True, truncation=True, return_tensors="pt"
-            )
-
-            # Move the data to the device.
-            for key, value in encoded_input.items():
-                encoded_input[key] = value.to(self.device)
-
+            input_texts = texts[i:i+BATCH_SIZE]
             # Compute token embeddings
             with torch.no_grad():
-                model_output = self.model(**encoded_input)
-                # Perform pooling. In this case, cls pooling.
-                sentence_embeddings = model_output[0][:, 0]
+                model_output = self.model.encode(input_texts)
+                sentence_embeddings = torch.from_numpy(model_output)
             # normalize embeddings (TODO: figure out if this is needed for InstructorXL)
             sentence_embeddings = torch.nn.functional.normalize(
                 sentence_embeddings, p=2, dim=1
