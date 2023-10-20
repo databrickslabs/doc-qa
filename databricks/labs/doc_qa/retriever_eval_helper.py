@@ -59,16 +59,16 @@ def benchmark_retrieval(reference_df, retriever, top_k=5):
     ranks = ranks.reindex(range(-1, top_k))
     total_count = reference_df.shape[0]
     hit_so_far = 0
-    precisions = []
+    accuracies = []
     for i in range(0, top_k):
         # i in ranks and not equal
         if i in ranks and ranks[i] and ranks[i] > 0:
             hit_so_far += ranks[i]
-        precisions.append(hit_so_far / total_count)
+        accuracies.append(hit_so_far / total_count)
 
-    precisions_df = pd.DataFrame(precisions, columns=["precision"])
-    precisions_df["rank"] = precisions_df.index + 1
-    return precisions_df
+    accuracy_df = pd.DataFrame(accuracies, columns=["accuracy"])
+    accuracy_df["rank"] = accuracy_df.index + 1
+    return accuracy_df
 
 
 def split_chunk_and_benchmark(
@@ -98,9 +98,9 @@ def split_chunk_and_benchmark(
         embed_prompt_template=embed_prompt,
     )
     logging.info(f"Created vector store with {len(df_chunks)} documents")
-    precisions = benchmark_retrieval(ground_truth_df, csv_retriever, top_k=top_k)
+    accuracies = benchmark_retrieval(ground_truth_df, csv_retriever, top_k=top_k)
 
-    return precisions, csv_retriever
+    return accuracies, csv_retriever
 
 
 def split_and_benchmark_bge(
