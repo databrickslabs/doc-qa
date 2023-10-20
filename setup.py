@@ -27,5 +27,6 @@ setup(
         'anthropic==0.4.1',
         'faiss-cpu==1.7.4',
         'databricks-vectorsearch-preview>=0.17',
+        'InstructorEmbedding==1.0.1'
     ],
 )
