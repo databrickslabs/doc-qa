@@ -97,7 +97,7 @@ def split_chunk_and_benchmark(
         embedding_provider=embedding_provider,
         embed_prompt_template=embed_prompt,
     )
-    logging.info(f"Created vector store with {csv_retriever.num_docs} documents")
+    logging.info(f"Created vector store with {len(df_chunks)} documents")
     precisions = benchmark_retrieval(ground_truth_df, csv_retriever, top_k=top_k)
 
     return precisions, csv_retriever
