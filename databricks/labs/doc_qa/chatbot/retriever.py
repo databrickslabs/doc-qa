@@ -120,12 +120,13 @@ class GTEEmbeddingProvider(EmbeddingProvider):
     An embedding provider for GTE-large
     """
     def __init__(self, model_name: str = "thenlper/gte-large", batch_size: int = 100):
-        from transformers import AutoTokenizer, AutoModel
+        from sentence_transformers import InputExample, models, SentenceTransformer, losses
         import torch
 
         self._model_name = model_name
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-        self.model = AutoModel.from_pretrained(model_name)
+        word_embedding_model = models.Transformer(model_name)
+        pooling_model = models.Pooling(word_embedding_model.get_word_embedding_dimension())
+        self.model = SentenceTransformer(modules=[word_embedding_model, pooling_model])
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model.to(self.device)
         self.batch_size = batch_size
@@ -151,27 +152,14 @@ class GTEEmbeddingProvider(EmbeddingProvider):
         total_embeddings = []
         for i in range(0, len(texts), BATCH_SIZE):
             # Tokenize the input texts
-            input_texts = texts[i : i + BATCH_SIZE]
-
-            # Tokenize sentences
-            encoded_input = self.tokenizer(
-                input_texts, padding=True, truncation=True, return_tensors="pt"
-            )
-
-            # Move the data to the device.
-            for key, value in encoded_input.items():
-                encoded_input[key] = value.to(self.device)
-
+            input_texts = texts[i:i+BATCH_SIZE]
             # Compute token embeddings
             with torch.no_grad():
-                model_output = self.model(**encoded_input)
-                # Perform pooling. In this case, cls pooling.
-                sentence_embeddings = model_output[0][:, 0]
-            # normalize embeddings (TODO: figure out if this is needed for GTE-large)
+                model_output = self.model.encode(input_texts)
+                sentence_embeddings = torch.from_numpy(model_output)
             sentence_embeddings = torch.nn.functional.normalize(
                 sentence_embeddings, p=2, dim=1
             )
-
             total_embeddings.extend(sentence_embeddings.tolist())
         return total_embeddings
 
