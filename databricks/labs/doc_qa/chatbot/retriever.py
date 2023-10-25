@@ -405,22 +405,24 @@ class CsvRetriever(BaseRetriever):
 
 class BricksIndexRetriever(BaseRetriever):
     def __init__(
-        self, workspace_url: str, token: str, columns: list, index_name: str, **kwargs
+        self, workspace_url: str, token: str, columns: list, endpoint_name: str, index_name: str, **kwargs
     ):
-        self._workspace_url = workspace_url
+        # VectorSearchClient won't work with trailing "/"
+        self._workspace_url = workspace_url[:-1] if workspace_url.endswith('/') else workspace_url
         self._token = token
         from databricks.vector_search.client import VectorSearchClient
 
-        self._vs = VectorSearchClient(workspace_url=workspace_url, token=token)
+        self._vs = VectorSearchClient(workspace_url=self._workspace_url, personal_access_token=self._token)
         self._columns = columns
+        self._endpoint_name = endpoint_name
         self._index_name = index_name
+        self._index = self._vs.get_index(endpoint_name=self._endpoint_name, index_name=self._index_name)
         super().__init__(**kwargs)
 
     def find_similar_docs(self, query, top_k=3):
-        result = self._vs.similarity_search(
-            index_name=self._index_name,
-            query_text=query,
+        result = self._index.similarity_search(
             columns=self._columns,
+            query_text=query,
             num_results=top_k,
         )
         documents = []
