@@ -26,7 +26,7 @@ setup(
         'python-dotenv==1.0.0',
         'anthropic==0.5.0',
         'faiss-cpu==1.7.4',
-        'databricks-vectorsearch-preview>=0.17',
+        'databricks-vectorsearch>=0.16',
         'InstructorEmbedding==1.0.1',
         'sentence-transformers==2.2.2',
     ],
