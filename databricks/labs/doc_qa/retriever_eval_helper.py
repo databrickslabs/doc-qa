@@ -48,24 +48,19 @@ def check_retrieved_rank(retriever, query, correct_source, top_k):
 
 
 def benchmark_retrieval(reference_df, retriever, top_k=5):
-    with ThreadPoolExecutor(max_workers=20) as executor:
-        results = executor.map(
-            lambda x: check_retrieved_rank(retriever, x[0], x[1], top_k),
-            zip(reference_df["question"], reference_df["source"]),
-        )
-    ranks = list(results)
-    # get the distribution of -1, 0, 1, 2 ... top_k
-    ranks = pd.Series(ranks).value_counts().sort_index()
-    ranks = ranks.reindex(range(-1, top_k))
-    total_count = reference_df.shape[0]
-    hit_so_far = 0
     accuracies = []
     for i in range(0, top_k):
-        # i in ranks and not equal
-        if i in ranks and ranks[i] and ranks[i] > 0:
-            hit_so_far += ranks[i]
-        accuracies.append(hit_so_far / total_count)
-
+        with ThreadPoolExecutor(max_workers=20) as executor:
+            results = executor.map(
+                lambda x: check_retrieved_rank(retriever, x[0], x[1], i + 1),
+                zip(reference_df["question"], reference_df["source"]),
+            )
+            # check the accuracy from the results
+            num_hits = 0
+            for result in results:
+                if result != -1:
+                    num_hits += 1
+            accuracies.append(num_hits / len(reference_df))
     accuracy_df = pd.DataFrame(accuracies, columns=["accuracy"])
     accuracy_df["rank"] = accuracy_df.index + 1
     return accuracy_df
@@ -129,6 +124,7 @@ def split_and_benchmark_bge(
         top_k=top_k,
     )
 
+
 def split_and_benchmark_gte(
     ground_truth_df: pd.DataFrame,
     datasource_df: pd.DataFrame,
@@ -155,6 +151,7 @@ def split_and_benchmark_gte(
         top_k=top_k,
     )
 
+
 def split_and_benchmark_instructor(
     ground_truth_df: pd.DataFrame,
     datasource_df: pd.DataFrame,
@@ -180,6 +177,7 @@ def split_and_benchmark_instructor(
         max_sequence_length=max_sequence_length,
         top_k=top_k,
     )
+
 
 def split_and_benchmark_openai(
     ground_truth_df: pd.DataFrame,
