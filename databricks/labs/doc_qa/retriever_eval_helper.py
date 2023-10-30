@@ -47,10 +47,10 @@ def check_retrieved_rank(retriever, query, correct_source, top_k):
     return -1
 
 
-def benchmark_retrieval(reference_df, retriever, top_k=5):
+def benchmark_retrieval(reference_df, retriever, top_k=5, concurrency=20):
     accuracies = []
     for i in range(0, top_k):
-        with ThreadPoolExecutor(max_workers=20) as executor:
+        with ThreadPoolExecutor(max_workers=concurrency) as executor:
             results = executor.map(
                 lambda x: check_retrieved_rank(retriever, x[0], x[1], i + 1),
                 zip(reference_df["question"], reference_df["source"]),
