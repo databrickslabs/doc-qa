@@ -65,7 +65,14 @@ class InstructorEmbeddingProvider(EmbeddingProvider):
     """
     An embedding provider for InstructorXL
     """
-    def __init__(self, model_name: str = "hkunlp/instructor-xl", batch_size: int = 100, query_instruction: str = "Represent the question for retrieving supporting documents:", passage_instruction: str = "Represent the document for retrieval"):
+
+    def __init__(
+        self,
+        model_name: str = "hkunlp/instructor-xl",
+        batch_size: int = 100,
+        query_instruction: str = "Represent the question for retrieving supporting documents:",
+        passage_instruction: str = "Represent the document for retrieval",
+    ):
         from InstructorEmbedding import INSTRUCTOR
         import torch
 
@@ -102,7 +109,7 @@ class InstructorEmbeddingProvider(EmbeddingProvider):
         total_embeddings = []
         for i in range(0, len(texts), BATCH_SIZE):
             # Tokenize the input texts
-            input_texts = texts[i:i+BATCH_SIZE]
+            input_texts = texts[i : i + BATCH_SIZE]
             # Compute token embeddings
             with torch.no_grad():
                 model_output = self.model.encode(input_texts)
@@ -115,17 +122,26 @@ class InstructorEmbeddingProvider(EmbeddingProvider):
             total_embeddings.extend(sentence_embeddings.tolist())
         return total_embeddings
 
+
 class GTEEmbeddingProvider(EmbeddingProvider):
     """
     An embedding provider for GTE-large
     """
+
     def __init__(self, model_name: str = "thenlper/gte-large", batch_size: int = 100):
-        from sentence_transformers import InputExample, models, SentenceTransformer, losses
+        from sentence_transformers import (
+            InputExample,
+            models,
+            SentenceTransformer,
+            losses,
+        )
         import torch
 
         self._model_name = model_name
         word_embedding_model = models.Transformer(model_name)
-        pooling_model = models.Pooling(word_embedding_model.get_word_embedding_dimension())
+        pooling_model = models.Pooling(
+            word_embedding_model.get_word_embedding_dimension()
+        )
         self.model = SentenceTransformer(modules=[word_embedding_model, pooling_model])
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model.to(self.device)
@@ -146,13 +162,15 @@ class GTEEmbeddingProvider(EmbeddingProvider):
         if len(texts) == 0:
             return []
         if is_query:
-            logging.info(f"GTE Embeddings doesn't discriminate based on query or passage")
+            logging.info(
+                f"GTE Embeddings doesn't discriminate based on query or passage"
+            )
 
         BATCH_SIZE = self.batch_size
         total_embeddings = []
         for i in range(0, len(texts), BATCH_SIZE):
             # Tokenize the input texts
-            input_texts = texts[i:i+BATCH_SIZE]
+            input_texts = texts[i : i + BATCH_SIZE]
             # Compute token embeddings
             with torch.no_grad():
                 model_output = self.model.encode(input_texts)
@@ -162,6 +180,7 @@ class GTEEmbeddingProvider(EmbeddingProvider):
             )
             total_embeddings.extend(sentence_embeddings.tolist())
         return total_embeddings
+
 
 class BgeEmbeddingProvider(EmbeddingProvider):
     """
@@ -405,18 +424,30 @@ class CsvRetriever(BaseRetriever):
 
 class BricksIndexRetriever(BaseRetriever):
     def __init__(
-        self, workspace_url: str, token: str, columns: list, endpoint_name: str, index_name: str, **kwargs
+        self,
+        workspace_url: str,
+        token: str,
+        columns: list,
+        endpoint_name: str,
+        index_name: str,
+        **kwargs,
     ):
         # VectorSearchClient won't work with trailing "/"
-        self._workspace_url = workspace_url[:-1] if workspace_url.endswith('/') else workspace_url
+        self._workspace_url = (
+            workspace_url[:-1] if workspace_url.endswith("/") else workspace_url
+        )
         self._token = token
         from databricks.vector_search.client import VectorSearchClient
 
-        self._vs = VectorSearchClient(workspace_url=self._workspace_url, personal_access_token=self._token)
+        self._vs = VectorSearchClient(
+            workspace_url=self._workspace_url, personal_access_token=self._token
+        )
         self._columns = columns
         self._endpoint_name = endpoint_name
         self._index_name = index_name
-        self._index = self._vs.get_index(endpoint_name=self._endpoint_name, index_name=self._index_name)
+        self._index = self._vs.get_index(
+            endpoint_name=self._endpoint_name, index_name=self._index_name
+        )
         super().__init__(**kwargs)
 
     def find_similar_docs(self, query, top_k=3):
@@ -466,3 +497,76 @@ class SerperRetriever(BaseRetriever):
             )
             documents.append(document)
         return documents
+
+
+class ChromaPersistedRetriever(BaseRetriever):
+    """
+    A VectorStore object contains the input data for the evaluation dataframe.
+    """
+
+    def __init__(
+        self,
+        file_path: str,
+        collection_name: str,
+        openai_key: str,
+        embed_prompt: PromptTemplate = None,
+        batch_size: int = 1000,
+    ):
+        import chromadb
+        from chromadb.utils import embedding_functions
+
+        self._embed_prompt = embed_prompt
+
+        self.client = chromadb.PersistentClient(path=file_path)
+
+        self.openai_ef = embedding_functions.OpenAIEmbeddingFunction(
+            api_key=openai_key, model_name="text-embedding-ada-002"
+        )
+
+        self.collection = self.client.get_or_create_collection(
+            name=collection_name,
+            metadata={"hnsw:space": "cosine"},
+            embedding_function=self.openai_ef,
+        )
+        self._batch_size = batch_size
+
+    def add_documents(self, input_df: pd.DataFrame):
+        import uuid
+
+        embeddings = []
+        metadatas = []
+        texts = []
+        ids = []
+        # store the rows as dictionary objects in metadatas
+        for index, row in input_df.iterrows():
+            metadata = row.to_dict()
+            # if metadata doesn't have created_at, use string of now
+            if "created_at" not in metadata:
+                metadata["created_at"] = str(datetime.now())
+            metadatas.append(metadata)
+            texts.append(self._embed_prompt.format(**row.to_dict()))
+            ids.append(str(uuid.uuid4()))
+        # split into batches
+        for i in range(0, len(texts), self._batch_size):
+            batch_embeddings = self.openai_ef(texts[i : i + self._batch_size])
+            embeddings.extend(batch_embeddings)
+        logging.info(f"Successfully generated {len(embeddings)} embeddings")
+        # add the embeddings to the collection
+        self.collection.add(embeddings=embeddings, metadatas=metadatas, ids=ids)
+        logging.info(f"Successfully added {len(embeddings)} documents to collection")
+
+    def find_similar_docs(self, query, top_k=3):
+        """
+        Find the top_k most similar documents to the query.
+        """
+        results = self.collection.query(query_texts=[query], n_results=top_k)
+        metadatas = results["metadatas"][0]
+        texts = results["documents"][0]
+        docs = []
+        for index, metadata in enumerate(metadatas):
+            print(type(metadata))
+            print(metadata)
+            doc = Document(**metadata)
+            docs.append(doc)
+            setattr(doc, "text", texts[index])
+        return docs
