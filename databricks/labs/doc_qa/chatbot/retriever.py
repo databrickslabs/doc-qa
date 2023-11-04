@@ -551,8 +551,13 @@ class ChromaPersistedRetriever(BaseRetriever):
             batch_embeddings = self.openai_ef(texts[i : i + self._batch_size])
             embeddings.extend(batch_embeddings)
         logging.info(f"Successfully generated {len(embeddings)} embeddings")
-        # add the embeddings to the collection
-        self.collection.add(embeddings=embeddings, metadatas=metadatas, ids=ids)
+        # add the embeddings to the collection in batches
+        for i in range(0, len(embeddings), self._batch_size):
+            self.collection.add(
+                embeddings=embeddings[i : i + self._batch_size],
+                metadatas=metadatas[i : i + self._batch_size],
+                ids=ids[i : i + self._batch_size],
+            )
         logging.info(f"Successfully added {len(embeddings)} documents to collection")
 
     def find_similar_docs(self, query, top_k=3):
