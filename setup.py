@@ -29,5 +29,6 @@ setup(
         'databricks-vectorsearch>=0.16',
         'InstructorEmbedding==1.0.1',
         'sentence-transformers==2.2.2',
+        'chroma==0.2.0',
     ],
 )
