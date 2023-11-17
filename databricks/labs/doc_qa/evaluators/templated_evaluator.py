@@ -291,9 +291,9 @@ class BaseLlmEvaluator:
 
 
 class OpenAIEvaluator(BaseLlmEvaluator):
-    ALLOWED_MODEL_NAMES = ["gpt-4", "gpt-3.5-turbo-16k"]
+    ALLOWED_MODEL_NAMES = ["gpt-4", "gpt-3.5-turbo-16k", "gpt-4-32k"]
 
-    # Override the constructor to only allow models from gpt-4 and gpt-3.5-turbo-16k
+    # Override the constructor to only allow models from gpt-4, gpt-4-32k and gpt-3.5-turbo-16k 
     def __init__(
         self,
         model: str,
@@ -307,7 +307,7 @@ class OpenAIEvaluator(BaseLlmEvaluator):
     ):
         if model not in self.ALLOWED_MODEL_NAMES:
             raise ValueError(
-                f"Unsupported model {model} provided. Only gpt-4 and gpt-3.5-turbo-16k are supported."
+                f"Unsupported model {model} provided. Only gpt-4, gpt-4-32k and gpt-3.5-turbo-16k are supported."
             )
         self._openai_retry_timeout = openai_retry_timeout
         super().__init__(
