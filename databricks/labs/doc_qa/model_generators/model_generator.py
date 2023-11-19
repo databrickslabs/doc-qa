@@ -619,6 +619,7 @@ class vLllmLocalModelGenerator(BaseModelGenerator):
         batch_size: int = 100,
         concurrency: int = 1,
         max_num_batched_tokens=None,
+        tensor_parallel_size=1,
         trust_remote_code=False,
     ) -> None:
         """
@@ -637,12 +638,13 @@ class vLllmLocalModelGenerator(BaseModelGenerator):
         self._hf_model_name = hf_model_name
         self._format_prompt_func = format_prompt_func
         if max_num_batched_tokens is None:
-            self._llm = LLM(model=hf_model_name, trust_remote_code=trust_remote_code)
+            self._llm = LLM(model=hf_model_name, trust_remote_code=trust_remote_code, tensor_parallel_size=tensor_parallel_size)
         else:
             self._llm = LLM(
                 model=hf_model_name,
                 max_num_batched_tokens=max_num_batched_tokens,
-                trust_remote_code=trust_remote_code
+                trust_remote_code=trust_remote_code,
+                tensor_parallel_size=tensor_parallel_size
             )
         logger.info(f"Initialized vLllmLocalModelGenerator with model {hf_model_name}")
 
