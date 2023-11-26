@@ -303,7 +303,7 @@ class OpenAIEvaluator(BaseLlmEvaluator):
         openai_function: dict = None,
         system_prompt_template: PromptTemplate = None,
         retry_policy: RetryPolicy = DefaultRetryPolicy(),
-        openai_retry_timeout: int = 1200,
+        openai_retry_timeout: int = 300,
     ):
         if model not in self.ALLOWED_MODEL_NAMES:
             raise ValueError(
