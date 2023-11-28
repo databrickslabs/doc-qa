@@ -530,7 +530,7 @@ class ChromaPersistedRetriever(BaseRetriever):
         )
         self._batch_size = batch_size
 
-    def add_documents(self, input_df: pd.DataFrame):
+    def add_documents(self, input_df: pd.DataFrame, id_column_name: str = None):
         import uuid
 
         embeddings = []
@@ -538,14 +538,17 @@ class ChromaPersistedRetriever(BaseRetriever):
         texts = []
         ids = []
         # store the rows as dictionary objects in metadatas
-        for index, row in input_df.iterrows():
+        for _, row in input_df.iterrows():
             metadata = row.to_dict()
             # if metadata doesn't have created_at, use string of now
             if "created_at" not in metadata:
                 metadata["created_at"] = str(datetime.now())
             metadatas.append(metadata)
             texts.append(self._embed_prompt.format(**row.to_dict()))
-            ids.append(str(uuid.uuid4()))
+            if id_column_name is None:
+                ids.append(str(uuid.uuid4()))
+            else:
+                ids.append(metadata[id_column_name])
         # split into batches
         for i in range(0, len(texts), self._batch_size):
             batch_embeddings = self.openai_ef(texts[i : i + self._batch_size])
@@ -569,8 +572,6 @@ class ChromaPersistedRetriever(BaseRetriever):
         texts = results["documents"][0]
         docs = []
         for index, metadata in enumerate(metadatas):
-            print(type(metadata))
-            print(metadata)
             doc = Document(**metadata)
             docs.append(doc)
             setattr(doc, "text", texts[index])
