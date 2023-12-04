@@ -24,7 +24,8 @@ def request_openai(
     messages, functions=[], temperature=0.0, model="gpt-4", retry_timeout=None
 ):
     if retry_timeout is None:
-        retry_timeout = 1200
+        retry_timeout = 300
+
     @retry(
         stop=stop_after_delay(retry_timeout),
         wait=wait_fixed(3),
@@ -55,7 +56,9 @@ def request_openai(
         if len(functions) > 0:
             data["functions"] = functions
         logger.debug(f"Calling open-ai API with data: {data}")
-        response = requests.post(url, headers=headers, data=json.dumps(data))
+        response = requests.post(
+            url, headers=headers, data=json.dumps(data), timeout=60
+        )
         if response.status_code == 429:
             logger.debug(f"Got 429 status code from openAI, response: {response.text}")
             raise StatusCode429Error("Too many requests")
