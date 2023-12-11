@@ -726,14 +726,14 @@ def open_assistant_prompt_format_func(message: str, system_prompt_opt: str) -> s
     if system_prompt_opt is not None:
         return f"""{system_prompt_opt}
 
-        USER: {message}
-        ASSISTANT:
+        ### Human: {message}
+        ### Assistant: 
         """
     else:
         return f"""A chat between a curious user and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the user's questions.
 
-        USER: {message}
-        ASSISTANT:
+        ### Human: {message}
+        ### Assistant: 
         """
 
 
