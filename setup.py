@@ -23,7 +23,7 @@ setup(
     install_requires=[
         'tenacity>=8.0.1',
         'tiktoken>=0.3.3',
-        'python-dotenv==1.0.0',
+        'python-dotenv==1.0.1',
         'anthropic==0.7.4',
         'faiss-cpu==1.7.4',
         'databricks-vectorsearch>=0.16',
