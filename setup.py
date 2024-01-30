@@ -28,7 +28,7 @@ setup(
         'faiss-cpu==1.7.4',
         'databricks-vectorsearch>=0.16',
         'InstructorEmbedding==1.0.1',
-        'sentence-transformers==2.2.2',
+        'sentence-transformers==2.3.0',
         'chroma==0.2.0',
         'chromadb==0.4.18',
     ],
